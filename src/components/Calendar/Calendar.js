@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from "@fullcalendar/interaction";
+import koLocale from '@fullcalendar/core/locales/ko';
 import './Calendar.scss';
 
 // TO DO
@@ -32,10 +33,10 @@ class Calendar extends Component {
                     eventClick={({event}) => this.props.updateEvent(event)}
                     defaultView="dayGridMonth"
                     ref={this.calendarComponentRef}
-                    header={{
+                    headerToolbar={{
                         left: 'prev',
                         center: 'title',
-                        right: 'today , next'
+                        right: 'today next'
                     }}
                     slotLabelFormat={
                         {
@@ -58,6 +59,7 @@ class Calendar extends Component {
                         // meridiem: false, //lowercase, short, narrow, false (display of AM/PM)
                         hour12: false //true, false
                     }}
+                    locale={koLocale}
                 />
                 {/* <FontAwesomeIcon icon={faChevronRight} size="5x" /> */}
             </div>

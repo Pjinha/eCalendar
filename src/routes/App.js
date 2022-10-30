@@ -1,9 +1,9 @@
 import React from 'react';
-import Calendar from './components/Calendar';
+import Calendar from '../components/Calendar';
 import './main.scss';
 import Button from 'react-bootstrap/Button';
 import {Col, Container, ListGroup, Navbar, Row} from 'react-bootstrap';
-import Modal from './components/EventModal';
+import Modal from '../components/EventModal';
 import * as moment from 'moment';
 import {v4 as uuidv4} from 'uuid';
 
@@ -135,7 +135,15 @@ class App extends React.Component {
                         </Col>
                     </Row>
                     <Row className="main-row">
-                        <Col xs={12} sm={12} md={8} lg={9} xl={6}>
+                        <Col lg={2} className={"d-none d-lg-block databases-container"}>
+                            <div className={"databases-header"}>
+                                <h2>Databases</h2>
+                            </div>
+                            <ListGroup className={"databases-list"}>
+
+                            </ListGroup>
+                        </Col>
+                        <Col xs={12} sm={12} md={8} lg={7} xl={6}>
                             <Calendar changeDate={this.changeDate} updateEvent={this.prepareEventUpdate}
                                       events={this.state.events}/>
                         </Col>

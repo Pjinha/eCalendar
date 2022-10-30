@@ -1,10 +1,11 @@
-@import "~bootstrap/scss/bootstrap";
+@import "node_modules/bootstrap/scss/bootstrap";
 
 .main-row {
   justify-content: center;
 }
+
 .events-header * {
-    font-weight: 700;
+  font-weight: 700;
 }
 
 .events-container {
@@ -47,4 +48,31 @@
 .events-list li {
   list-style: none;
   padding-left: 0;
+}
+
+.databases-container {
+  margin-top: 20px;
+  border-right: 4px solid #fac863;
+}
+
+.databases-header {
+  display: flex;
+  align-items: center;
+  justify-content: right;
+  padding-bottom: 20px;
+  border-bottom: 1px solid black;
+
+  h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+.databases-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
 }
