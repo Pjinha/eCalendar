@@ -6,6 +6,7 @@ import {Col, Container, ListGroup, Navbar, Row} from 'react-bootstrap';
 import Modal from '../components/EventModal';
 import * as moment from 'moment';
 import {v4 as uuidv4} from 'uuid';
+import {getCookie} from "../components/cookies/Cookies";
 
 class App extends React.Component {
 
@@ -41,11 +42,40 @@ class App extends React.Component {
     // update the state with the new event and make a copy of state to local storage for persistent data usage
     addEvent = (event) => {
         event.id = uuidv4();
-        this.setState(({events}) => ({
-            events: [...events, event]
-        }), () => {
-            this.saveStateToLocalStorage();
-        })
+
+        /*
+        *   UUID = Column(String, primary_key=True, index=True, server_default="uuid()")
+            ScheduleName = Column(String, index=True)
+            Owner = Column(Integer, ForeignKey("Users.UUID"))
+            Members = Column(String)
+            Category = Column(String)
+            Starts = Column(DateTime)
+            Ends = Column(DateTime)
+        * */
+
+        let starts = moment(event.start).format("YYYY-MM-DDTHH:mm:ss.sssZ");
+        let jsondata = {
+            "ScheduleName": event.title,
+            "Category": event.category,
+            "Starts": starts,
+            "Owner": "UUID",
+        }
+
+        let token = getCookie("loginToken");
+
+        fetch('http://localhost:8000/schedule/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token
+            },
+            body: JSON.stringify(jsondata)
+        }).then((response) => {
+            if (response.status === 200) {
+                this.setState({events: [...this.state.events, event]});
+            }
+        });
+
         this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
     }
 

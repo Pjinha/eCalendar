@@ -33,13 +33,9 @@ class Login extends React.Component {
             .then(res => res.json())
             .then(res => {
                 console.log(res)
-                if (res.hasOwnProperty('access_token')) {
-                    const jwtToken = res.access_token;
-                    setCookie('loginToken', jwtToken, {
-                        path: "/",
-                        secure: true,
-                        sameSite: 'none',
-                    });
+                if (res.hasOwnProperty('access_token') && res.hasOwnProperty('token_type')) {
+                    const jwtToken = res.token_type + " " + res.access_token;
+                    setCookie('loginToken', jwtToken);
                     this.setState({
                         loggedIn: true
                     })

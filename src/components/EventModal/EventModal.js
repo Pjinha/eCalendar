@@ -7,11 +7,12 @@ import './EventModal.scss';
 
 let schema = yup.object().shape({
     title: yup.string().trim('The title cannot include leading and trailing spaces').strict(true).required('Title is required'),
+    category: yup.string().required('Category is required'),
     start: yup.date().required(),
     end: yup.date().min(yup.ref('start'), () => `End date can not be before start date!`),
     startTime: yup.string(),
     endTime: yup.string(),
-    description: yup.string()
+    memo: yup.string()
 });
 
 class EventModal extends Component {
@@ -20,6 +21,7 @@ class EventModal extends Component {
         this.state = {
             event: {
                 title: "",
+                category: "",
                 start: '',
                 end: '',
                 startTime: '',
@@ -48,11 +50,12 @@ class EventModal extends Component {
             event: prevEvent,
             error: {}
         })
-
     }
+
     handleAddUpdateEvent = (e, status) => {
         e.preventDefault();
         const title = e.target.title.value;
+        const category = e.target.category.value;
         let start = moment(e.target.start.value).format('YYYY-MM-DD');
         let end = moment(e.target.end.value).format('YYYY-MM-DD');
         const startTime = e.target.startTime.value;
@@ -66,9 +69,8 @@ class EventModal extends Component {
         }
         const event = {
             title,
+            category,
             start,
-            end,
-            memo,
             allDay: false
         }
         if (startTime === "" || endTime === "") {
@@ -79,6 +81,7 @@ class EventModal extends Component {
             .validate(event)
             .then(() => {
                 //if status===false add new event otherwise update
+                // TODO: add a new event with fetch request
                 if (!status) {
                     this.props.addEvent(event);
                 } else {
@@ -90,11 +93,13 @@ class EventModal extends Component {
                 this.setState({hasError: true, error: err});
             });
     }
+
     closeModal = () => {
         //reset state before closing
         this.setState({
             event: {
                 title: "",
+                category: "",
                 start: '',
                 end: '',
                 startTime: '',
@@ -106,7 +111,7 @@ class EventModal extends Component {
     }
 
     render() {
-        const {title, start, end, startTime, endTime, memo} = this.state.event;
+        const {title, category, start, end, startTime, endTime, memo} = this.state.event;
         return (
             <div className="modal">
                 <Modal
@@ -128,6 +133,16 @@ class EventModal extends Component {
                                                            type="isInvalid">{this.state.error.errors && this.state.error.path === "title" && this.state.error.errors[0]}</Form.Control.Feedback>
                                 </Col>
                             </Form.Group>
+                            <Form.Group as={Row} className={"mb-3"} controlId="category">
+                                <Form.Label column sm="2">Category <span className="required">*</span></Form.Label>
+                                <Col sm="10">
+                                    <Form.Control required type="text" placeholder="Category" value={category}
+                                                  onChange={this.onChange}
+                                                  isInvalid={this.state.error.path === "category"}/>
+                                    <Form.Control.Feedback className="error"
+                                                           type="isInvalid">{this.state.error.errors && this.state.error.path === "category" && this.state.error.errors[0]}</Form.Control.Feedback>
+                                </Col>
+                            </Form.Group>
                             <Form.Group as={Row} className={"mb-3"}>
                                 <Form.Group as={Col}>
                                     <Form.Group as={Row} className={"mb-3"} controlId="start">
@@ -144,10 +159,7 @@ class EventModal extends Component {
                                     <Form.Group as={Row} className={"mb-3"} controlId="end">
                                         <Form.Label column sm="4">End Date</Form.Label>
                                         <Col sm="8">
-                                            <Form.Control required type="date" value={end} onChange={this.onChange}
-                                                          isInvalid={this.state.error.path === "end"}/>
-                                            <Form.Control.Feedback className="error"
-                                                                   type="isInvalid">{this.state.error.errors && this.state.error.path === "end" && this.state.error.errors[0]}</Form.Control.Feedback>
+                                            <Form.Control type="date" value={end} onChange={this.onChange}/>
                                         </Col>
                                     </Form.Group>
                                 </Form.Group>
@@ -186,8 +198,11 @@ class EventModal extends Component {
                                 </Form.Label>
                                 <Col sm="10">
                                     <InputGroup>
-                                        <InputGroup.Checkbox aria-label="Checkbox for following text input" />
+                                        <InputGroup.Checkbox aria-label="Checkbox for following text input"/>
                                         <Form.Control type="textbox" value={memo} onChange={this.onChange}/>
+                                        <Button variant="outline-secondary" id="button-addon2">
+                                            +
+                                        </Button>
                                     </InputGroup>
                                 </Col>
                             </Form.Group>
