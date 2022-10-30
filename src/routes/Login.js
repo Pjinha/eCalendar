@@ -1,8 +1,20 @@
 import React from 'react';
 import {Card, Col, Container, Row, Form, Button} from "react-bootstrap";
 import './login.scss';
+import Modal from "../components/RegisterModal";
+import {setCookie} from "../components/cookies/Cookies";
+import {Navigate} from "react-router-dom";
 
 class Login extends React.Component {
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            loggedIn: false,
+            show: false
+        };
+    }
 
     handleSubmit = (e) => {
         e.preventDefault();
@@ -13,15 +25,42 @@ class Login extends React.Component {
 
         fetch('http://localhost:8000/login', {
             method: 'POST',
-            body: formData
-        }).then(res => res.json())
+            body: formData,
+            headers: {
+                "Allow-Control-Allow-Origin": "*"
+            }
+        })
+            .then(res => res.json())
             .then(res => {
-                if (res.success) {
-                    this.props.history.push('/main');
+                console.log(res)
+                if (res.hasOwnProperty('access_token')) {
+                    const jwtToken = res.access_token;
+                    setCookie('loginToken', jwtToken, {
+                        path: "/",
+                        secure: true,
+                        sameSite: 'none',
+                    });
+                    this.setState({
+                        loggedIn: true
+                    })
                 } else {
                     alert('Login failed');
                 }
             })
+            .catch(err => {
+                console.log(err);
+            })
+    }
+
+    handleShow = () => {
+        this.setState({
+            show: true
+        })
+    }
+    handleClose = () => {
+        this.setState({
+            show: false
+        })
     }
 
     render() {
@@ -31,7 +70,8 @@ class Login extends React.Component {
                     <Col xs={12} md={6}>
                         <h2 className={"mb-5"}>Login</h2>
                         <Card body>
-                            <Form className={"login-form"} id={"login-form"} onSubmit={this.handleSubmit} encType="multipart/form-data">
+                            <Form className={"login-form"} id={"login-form"} onSubmit={this.handleSubmit}
+                                  encType="multipart/form-data">
                                 <Form.Group className={"mb-3"} controlId="username">
                                     <Form.Label>아이디</Form.Label>
                                     <Form.Control type="text" placeholder="아이디를 입력해주세요."/>
@@ -40,14 +80,21 @@ class Login extends React.Component {
                                     <Form.Label>비밀번호</Form.Label>
                                     <Form.Control type="password" placeholder="비밀번호를 입력해주세요."/>
                                 </Form.Group>
-                                <a href={"/register"}>회원가입</a>
+                                <Button onClick={this.handleShow}>회원가입</Button>
                                 <Button variant="primary" type={"submit"}>
                                     Submit
                                 </Button>
                             </Form>
                         </Card>
+
+                        <Modal show={this.state.show} handleClose={this.handleClose}/>
                     </Col>
                 </Row>
+                {
+                    this.state.loggedIn && (
+                        <Navigate to="/" replace={true} />
+                    )
+                }
             </Container>
         );
     }

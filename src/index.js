@@ -7,21 +7,24 @@ import {
 } from "react-router-dom";
 import App from './routes/App';
 import Login from "./routes/Login";
+import {CookiesProvider} from "react-cookie";
 
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <App />,
+        element: <App/>,
     },
     {
         path: "/login",
-        element: <Login />,
+        element: <Login/>,
     }
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>
-        <RouterProvider router={router} />
+        <CookiesProvider>
+            <RouterProvider router={router}/>
+        </CookiesProvider>
     </React.StrictMode>
 );
 

@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {Modal, Button, Form, Row, Col} from 'react-bootstrap';
+import {Modal, Button, Form, Row, Col, InputGroup} from 'react-bootstrap';
 // there is a findDomNode warning that needs to be fixed
 import * as moment from 'moment';
 import * as yup from 'yup';
@@ -11,8 +11,6 @@ let schema = yup.object().shape({
     end: yup.date().min(yup.ref('start'), () => `End date can not be before start date!`),
     startTime: yup.string(),
     endTime: yup.string(),
-    people: yup.string(),
-    location: yup.string(),
     description: yup.string()
 });
 
@@ -26,9 +24,7 @@ class EventModal extends Component {
                 end: '',
                 startTime: '',
                 endTime: '',
-                people: '',
-                location: '',
-                description: ''
+                memo: ''
             },
             hasError: false,
             error: {}
@@ -61,9 +57,7 @@ class EventModal extends Component {
         let end = moment(e.target.end.value).format('YYYY-MM-DD');
         const startTime = e.target.startTime.value;
         const endTime = e.target.endTime.value;
-        const people = e.target.people.value;
-        const location = e.target.location.value;
-        const description = e.target.description.value;
+        const memo = e.target.memo.value;
         if (startTime) {
             start += `T${startTime}`;
         }
@@ -74,9 +68,7 @@ class EventModal extends Component {
             title,
             start,
             end,
-            people,
-            location,
-            description,
+            memo,
             allDay: false
         }
         if (startTime === "" || endTime === "") {
@@ -107,16 +99,14 @@ class EventModal extends Component {
                 end: '',
                 startTime: '',
                 endTime: '',
-                people: '',
-                location: '',
-                description: ''
+                memo: ''
             }
         });
         this.props.handleClose()
     }
 
     render() {
-        const {title, start, end, startTime, endTime, people, location, description} = this.state.event;
+        const {title, start, end, startTime, endTime, memo} = this.state.event;
         return (
             <div className="modal">
                 <Modal
@@ -152,14 +142,12 @@ class EventModal extends Component {
 
                                 <Form.Group as={Col}>
                                     <Form.Group as={Row} className={"mb-3"} controlId="end">
-                                        <Form.Label column sm="4">End Date <span
-                                            className="required">*</span></Form.Label>
+                                        <Form.Label column sm="4">End Date</Form.Label>
                                         <Col sm="8">
                                             <Form.Control required type="date" value={end} onChange={this.onChange}
                                                           isInvalid={this.state.error.path === "end"}/>
                                             <Form.Control.Feedback className="error"
                                                                    type="isInvalid">{this.state.error.errors && this.state.error.path === "end" && this.state.error.errors[0]}</Form.Control.Feedback>
-
                                         </Col>
                                     </Form.Group>
                                 </Form.Group>
@@ -184,28 +172,23 @@ class EventModal extends Component {
 
                                 </Form.Group>
                             </Form.Group>
-                            <Form.Group as={Row} className={"mb-3"} controlId="people">
+                            <Form.Group as={Row} className={"mb-3"} controlId="memo">
                                 <Form.Label column sm="2">
-                                    People
+                                    Memo
                                 </Form.Label>
                                 <Col sm="10">
-                                    <Form.Control type="text" value={people} onChange={this.onChange}/>
+                                    <Form.Control as="textarea" value={memo} onChange={this.onChange}/>
                                 </Col>
                             </Form.Group>
-                            <Form.Group as={Row} className={"mb-3"} controlId="location">
+                            <Form.Group as={Row} className={"mb-3"} controlId="todos">
                                 <Form.Label column sm="2">
-                                    Location
+                                    Todos
                                 </Form.Label>
                                 <Col sm="10">
-                                    <Form.Control type="text" value={location} onChange={this.onChange}/>
-                                </Col>
-                            </Form.Group>
-                            <Form.Group as={Row} className={"mb-3"} controlId="description">
-                                <Form.Label column sm="2">
-                                    Description
-                                </Form.Label>
-                                <Col sm="10">
-                                    <Form.Control type="text" value={description} onChange={this.onChange}/>
+                                    <InputGroup>
+                                        <InputGroup.Checkbox aria-label="Checkbox for following text input" />
+                                        <Form.Control type="textbox" value={memo} onChange={this.onChange}/>
+                                    </InputGroup>
                                 </Col>
                             </Form.Group>
                             <Row>
@@ -228,7 +211,6 @@ class EventModal extends Component {
                         <Button variant="secondary" onClick={this.closeModal}>
                             Close
                         </Button>
-
                     </Modal.Footer>
                 </Modal>
             </div>
