@@ -1,10 +1,10 @@
+import React, {Component} from 'react'
+import PropTypes from 'prop-types'
+
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from "@fullcalendar/interaction";
 import './Calendar.scss';
-
-import React, { Component } from 'react'
-import PropTypes from 'prop-types'
 
 // TO DO
 // If you need to add arrows on the side of the calendar
@@ -21,6 +21,7 @@ class Calendar extends Component {
         //Get all the events for the date that was clicked
         this.props.changeDate(arg.dateStr);
     }
+
     render() {
         return (
             <div className="calendar-container">
@@ -28,7 +29,7 @@ class Calendar extends Component {
                 <FullCalendar
                     dateClick={this.handleDateClick}
                     //get the event that is about to be updated
-                    eventClick={({ event }) => this.props.updateEvent(event)}
+                    eventClick={({event}) => this.props.updateEvent(event)}
                     defaultView="dayGridMonth"
                     ref={this.calendarComponentRef}
                     header={{
@@ -63,4 +64,5 @@ class Calendar extends Component {
         )
     }
 }
+
 export default Calendar;

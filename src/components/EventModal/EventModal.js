@@ -1,5 +1,5 @@
-import React, { Component } from 'react'
-import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
+import React, {Component} from 'react'
+import {Modal, Button, Form, Row, Col} from 'react-bootstrap';
 // there is a findDomNode warning that needs to be fixed
 import * as moment from 'moment';
 import * as yup from 'yup';
@@ -39,13 +39,14 @@ class EventModal extends Component {
 
     static getDerivedStateFromProps(props, state) {
         if (Object.keys(props.event).length !== 0) {
-            return { event: props.event };
+            return {event: props.event};
         }
         return state;
     }
+
     onChange = input => {
         const prevEvent = this.state.event;
-        const { value, id } = input.target;
+        const {value, id} = input.target;
         prevEvent[id] = value;
         this.setState({
             event: prevEvent,
@@ -94,7 +95,7 @@ class EventModal extends Component {
                 this.closeModal();
             })
             .catch(err => {
-                this.setState({ hasError: true, error: err });
+                this.setState({hasError: true, error: err});
             });
     }
     closeModal = () => {
@@ -113,8 +114,9 @@ class EventModal extends Component {
         });
         this.props.handleClose()
     }
+
     render() {
-        const { title, start, end, startTime, endTime, people, location, description } = this.state.event;
+        const {title, start, end, startTime, endTime, people, location, description} = this.state.event;
         return (
             <div className="modal">
                 <Modal
@@ -125,20 +127,24 @@ class EventModal extends Component {
                         <Modal.Title>Add a new event</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        <Form onSubmit={e => this.handleAddUpdateEvent(e, Object.keys(this.props.event).length === 0 ? false : true)}>
+                        <Form onSubmit={e => this.handleAddUpdateEvent(e, Object.keys(this.props.event).length !== 0)}>
                             <Form.Group as={Row} controlId="title">
                                 <Form.Label column sm="2">Title <span className="required">*</span></Form.Label>
                                 <Col sm="10">
-                                    <Form.Control required type="text" placeholder="Event Title" value={title} onChange={this.onChange} isInvalid={this.state.error.path === "title"} />
-                                    <Form.Control.Feedback className="error" type="isInvalid">{this.state.error.errors && this.state.error.path === "title" && this.state.error.errors[0]}</Form.Control.Feedback>
+                                    <Form.Control required type="text" placeholder="Event Title" value={title}
+                                                  onChange={this.onChange}
+                                                  isInvalid={this.state.error.path === "title"}/>
+                                    <Form.Control.Feedback className="error"
+                                                           type="isInvalid">{this.state.error.errors && this.state.error.path === "title" && this.state.error.errors[0]}</Form.Control.Feedback>
                                 </Col>
                             </Form.Group>
                             <Form.Row>
                                 <Form.Group as={Col}>
                                     <Form.Group as={Row} controlId="start">
-                                        <Form.Label column sm="4">Start Date <span className="required">*</span></Form.Label>
+                                        <Form.Label column sm="4">Start Date <span
+                                            className="required">*</span></Form.Label>
                                         <Col sm="8">
-                                            <Form.Control required type="date" value={start} onChange={this.onChange} />
+                                            <Form.Control required type="date" value={start} onChange={this.onChange}/>
                                         </Col>
                                     </Form.Group>
 
@@ -146,10 +152,13 @@ class EventModal extends Component {
 
                                 <Form.Group as={Col}>
                                     <Form.Group as={Row} controlId="end">
-                                        <Form.Label column sm="4">End Date <span className="required">*</span></Form.Label>
+                                        <Form.Label column sm="4">End Date <span
+                                            className="required">*</span></Form.Label>
                                         <Col sm="8">
-                                            <Form.Control required type="date" value={end} onChange={this.onChange} isInvalid={this.state.error.path === "end"} />
-                                            <Form.Control.Feedback className="error" type="isInvalid">{this.state.error.errors && this.state.error.path === "end" && this.state.error.errors[0]}</Form.Control.Feedback>
+                                            <Form.Control required type="date" value={end} onChange={this.onChange}
+                                                          isInvalid={this.state.error.path === "end"}/>
+                                            <Form.Control.Feedback className="error"
+                                                                   type="isInvalid">{this.state.error.errors && this.state.error.path === "end" && this.state.error.errors[0]}</Form.Control.Feedback>
 
                                         </Col>
                                     </Form.Group>
@@ -157,20 +166,20 @@ class EventModal extends Component {
                                 </Form.Group>
                             </Form.Row>
                             <Form.Row>
-                                <Form.Group as={Col} >
+                                <Form.Group as={Col}>
                                     <Form.Group as={Row} controlId="startTime">
                                         <Form.Label column sm="4">Begins</Form.Label>
                                         <Col sm="8">
-                                            <Form.Control type="time" value={startTime} onChange={this.onChange} />
+                                            <Form.Control type="time" value={startTime} onChange={this.onChange}/>
                                         </Col>
                                     </Form.Group>
                                 </Form.Group>
 
-                                <Form.Group as={Col} >
+                                <Form.Group as={Col}>
                                     <Form.Group as={Row} controlId="endTime">
                                         <Form.Label column sm="4">Ends</Form.Label>
                                         <Col sm="8">
-                                            <Form.Control type="time" value={endTime} onChange={this.onChange} />
+                                            <Form.Control type="time" value={endTime} onChange={this.onChange}/>
                                         </Col>
                                     </Form.Group>
 
@@ -179,38 +188,41 @@ class EventModal extends Component {
                             <Form.Group as={Row} controlId="people">
                                 <Form.Label column sm="2">
                                     People
-                            </Form.Label>
+                                </Form.Label>
                                 <Col sm="10">
-                                    <Form.Control type="text" value={people} onChange={this.onChange} />
+                                    <Form.Control type="text" value={people} onChange={this.onChange}/>
                                 </Col>
                             </Form.Group>
                             <Form.Group as={Row} controlId="location">
                                 <Form.Label column sm="2">
                                     Location
-                            </Form.Label>
+                                </Form.Label>
                                 <Col sm="10">
-                                    <Form.Control type="text" value={location} onChange={this.onChange} />
+                                    <Form.Control type="text" value={location} onChange={this.onChange}/>
                                 </Col>
                             </Form.Group>
                             <Form.Group as={Row} controlId="description">
                                 <Form.Label column sm="2">
                                     Description
-                            </Form.Label>
+                                </Form.Label>
                                 <Col sm="10">
-                                    <Form.Control type="text" value={description} onChange={this.onChange} />
+                                    <Form.Control type="text" value={description} onChange={this.onChange}/>
                                 </Col>
                             </Form.Group>
                             <Row>
                                 <Col align="center">
                                     <Button variant="primary" type="submit">
                                         {Object.keys(this.props.event).length === 0 ? "Add" : "Update"} Event
-                                </Button>
+                                    </Button>
                                 </Col>
                             </Row>
                         </Form>
                     </Modal.Body>
                     <Modal.Footer>
-                        {Object.keys(this.props.event).length !== 0 ? <Button variant="danger" onClick={() => { this.props.deleteEvent(this.props.event); this.closeModal() }}>
+                        {Object.keys(this.props.event).length !== 0 ? <Button variant="danger" onClick={() => {
+                            this.props.deleteEvent(this.props.event);
+                            this.closeModal()
+                        }}>
                             Delete
                         </Button> : ""
                         }
@@ -225,4 +237,5 @@ class EventModal extends Component {
     }
 
 }
+
 export default EventModal;

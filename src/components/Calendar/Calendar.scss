@@ -1,20 +1,18 @@
-@import "~@fullcalendar/core/main.css";
-@import "~@fullcalendar/daygrid/main.css";
+@import 'bootstrap/dist/css/bootstrap.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
 
 .calendar-container {
   border-top: 4px solid #fac863;
   padding-top: 20px;
   margin-top: 20px;
-  display: flex;
-  align-items: center;
   height: 100%;
-  .fc-right {
-    display: flex;
+
+  .fc-toolbar-title {
+    font-weight: 700;
   }
-  @media only screen and (max-width: 576px) {
-    .fc-center {
-      font-size: 12px;
-      text-align: center;
-    }
+
+  a {
+    color: black;
+    text-decoration: none;
   }
 }
