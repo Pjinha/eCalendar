@@ -12,11 +12,11 @@ import {CookiesProvider} from "react-cookie";
 const router = createBrowserRouter([
     {
         path: "/",
-        element: <App/>,
+        element: <Login/>,
     },
     {
-        path: "/login",
-        element: <Login/>,
+        path: "/dashboard",
+        element: <App/>,
     }
 ]);
 

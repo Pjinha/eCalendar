@@ -13,6 +13,7 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         // there is a bug with getting current data according to the timezone
+
         this.state = {
             date: new Date(new Date().toLocaleDateString()),
             //add some sample data if there is nothing saved in localStorage
@@ -73,6 +74,7 @@ class App extends React.Component {
         }).then((response) => {
             if (response.status === 200) {
                 this.setState({events: [...this.state.events, event]});
+                this.saveStateToLocalStorage();
             }
         });
 
@@ -81,11 +83,27 @@ class App extends React.Component {
 
     deleteEvent = (event) => {
         const newEvents = this.state.events.filter(e => e.id !== event.id);
-        this.setState({
-            events: newEvents
-        }, () => {
-            this.saveStateToLocalStorage();
+
+        let jsondata = {
+            "UUID": event.id,
+        }
+
+        let token = getCookie("loginToken");
+
+        fetch('http://localhost:8000/schedule/delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token
+            },
+            body: JSON.stringify(jsondata)
         })
+            .then((response) => {
+                if (response.status === 200) {
+                    this.setState({events: newEvents});
+                    this.saveStateToLocalStorage();
+                }
+            });
     }
 
     updateEvent = (event) => {

@@ -88,7 +88,7 @@ class Login extends React.Component {
                 </Row>
                 {
                     this.state.loggedIn && (
-                        <Navigate to="/" replace={true} />
+                        <Navigate to="/dashboard" replace={true} />
                     )
                 }
             </Container>
