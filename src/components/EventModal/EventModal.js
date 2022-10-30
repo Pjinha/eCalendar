@@ -128,7 +128,7 @@ class EventModal extends Component {
                     </Modal.Header>
                     <Modal.Body>
                         <Form onSubmit={e => this.handleAddUpdateEvent(e, Object.keys(this.props.event).length !== 0)}>
-                            <Form.Group as={Row} controlId="title">
+                            <Form.Group as={Row} className={"mb-3"} controlId="title">
                                 <Form.Label column sm="2">Title <span className="required">*</span></Form.Label>
                                 <Col sm="10">
                                     <Form.Control required type="text" placeholder="Event Title" value={title}
@@ -138,9 +138,9 @@ class EventModal extends Component {
                                                            type="isInvalid">{this.state.error.errors && this.state.error.path === "title" && this.state.error.errors[0]}</Form.Control.Feedback>
                                 </Col>
                             </Form.Group>
-                            <Form.Row>
+                            <Form.Group as={Row} className={"mb-3"}>
                                 <Form.Group as={Col}>
-                                    <Form.Group as={Row} controlId="start">
+                                    <Form.Group as={Row} className={"mb-3"} controlId="start">
                                         <Form.Label column sm="4">Start Date <span
                                             className="required">*</span></Form.Label>
                                         <Col sm="8">
@@ -151,7 +151,7 @@ class EventModal extends Component {
                                 </Form.Group>
 
                                 <Form.Group as={Col}>
-                                    <Form.Group as={Row} controlId="end">
+                                    <Form.Group as={Row} className={"mb-3"} controlId="end">
                                         <Form.Label column sm="4">End Date <span
                                             className="required">*</span></Form.Label>
                                         <Col sm="8">
@@ -162,12 +162,11 @@ class EventModal extends Component {
 
                                         </Col>
                                     </Form.Group>
-
                                 </Form.Group>
-                            </Form.Row>
-                            <Form.Row>
+                            </Form.Group>
+                            <Form.Group as={Row} className={"mb-3"}>
                                 <Form.Group as={Col}>
-                                    <Form.Group as={Row} controlId="startTime">
+                                    <Form.Group as={Row} className={"mb-3"} controlId="startTime">
                                         <Form.Label column sm="4">Begins</Form.Label>
                                         <Col sm="8">
                                             <Form.Control type="time" value={startTime} onChange={this.onChange}/>
@@ -176,7 +175,7 @@ class EventModal extends Component {
                                 </Form.Group>
 
                                 <Form.Group as={Col}>
-                                    <Form.Group as={Row} controlId="endTime">
+                                    <Form.Group as={Row} className={"mb-3"} controlId="endTime">
                                         <Form.Label column sm="4">Ends</Form.Label>
                                         <Col sm="8">
                                             <Form.Control type="time" value={endTime} onChange={this.onChange}/>
@@ -184,8 +183,8 @@ class EventModal extends Component {
                                     </Form.Group>
 
                                 </Form.Group>
-                            </Form.Row>
-                            <Form.Group as={Row} controlId="people">
+                            </Form.Group>
+                            <Form.Group as={Row} className={"mb-3"} controlId="people">
                                 <Form.Label column sm="2">
                                     People
                                 </Form.Label>
@@ -193,7 +192,7 @@ class EventModal extends Component {
                                     <Form.Control type="text" value={people} onChange={this.onChange}/>
                                 </Col>
                             </Form.Group>
-                            <Form.Group as={Row} controlId="location">
+                            <Form.Group as={Row} className={"mb-3"} controlId="location">
                                 <Form.Label column sm="2">
                                     Location
                                 </Form.Label>
@@ -201,7 +200,7 @@ class EventModal extends Component {
                                     <Form.Control type="text" value={location} onChange={this.onChange}/>
                                 </Col>
                             </Form.Group>
-                            <Form.Group as={Row} controlId="description">
+                            <Form.Group as={Row} className={"mb-3"} controlId="description">
                                 <Form.Label column sm="2">
                                     Description
                                 </Form.Label>
