@@ -14,6 +14,22 @@ class App extends React.Component {
         super(props);
         // there is a bug with getting current data according to the timezone
 
+        // let token = getCookie('loginToken');
+        //
+        // fetch('http://localhost/api/schedule/', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //         'Authorization': token
+        //     },
+        //     body: JSON.stringify(jsondata)
+        // }).then((response) => {
+        //     if (response.status === 200) {
+        //         this.setState({events: [...this.state.events, event]});
+        //         this.saveStateToLocalStorage();
+        //     }
+        // });
+
         this.state = {
             date: new Date(new Date().toLocaleDateString()),
             //add some sample data if there is nothing saved in localStorage
@@ -64,7 +80,7 @@ class App extends React.Component {
 
         let token = getCookie("loginToken");
 
-        fetch('http://localhost:8000/schedule/create', {
+        fetch('http://localhost/api/schedule/create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -90,7 +106,7 @@ class App extends React.Component {
 
         let token = getCookie("loginToken");
 
-        fetch('http://localhost:8000/schedule/delete', {
+        fetch('http://localhost/api/schedule/delete', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
