@@ -55,6 +55,7 @@ class App extends React.Component {
 
         let starts = moment(event.start).format("YYYY-MM-DDTHH:mm:ss.sssZ");
         let jsondata = {
+            "UUID": event.id,
             "ScheduleName": event.title,
             "Category": event.category,
             "Starts": starts,
@@ -72,20 +73,39 @@ class App extends React.Component {
             body: JSON.stringify(jsondata)
         }).then((response) => {
             if (response.status === 200) {
-                this.setState({events: [...this.state.events, event]});
+                this.setState(({ events }) => ({
+                    events: [...events, event]
+                }), () => {
+                    this.saveStateToLocalStorage();
+                })
+
+                this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
             }
         });
-
-        this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
     }
 
     deleteEvent = (event) => {
         const newEvents = this.state.events.filter(e => e.id !== event.id);
-        this.setState({
-            events: newEvents
-        }, () => {
-            this.saveStateToLocalStorage();
-        })
+        let token = getCookie("loginToken");
+        let jsondata = {
+            "UUID": event.id,
+        }
+        fetch('http://localhost:8000/schedule/delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token
+            },
+            body: JSON.stringify(jsondata)
+        }).then((response) => {
+            if (response.status === 200) {
+                this.setState({
+                    events: newEvents
+                }, () => {
+                    this.saveStateToLocalStorage();
+                })
+            }
+        });
     }
 
     updateEvent = (event) => {

@@ -77,16 +77,13 @@ class RegisterModal extends Component {
                     }
                 })
                     .then(res => res.json())
-                    .then(res => {
-                        if (res.success) {
-                            alert('LOGIN SUCCESS');
-                        } else {
-                            alert('Login failed');
-                        }
-                        this.closeModal()
+                    .then(() => {
+                        this.closeModal();
+                        alert('회원가입 성공')
                     })
                     .catch(err => {
                         alert("ERROR!!");
+                        console.error(err);
                     })
                 this.closeModal();
             })
