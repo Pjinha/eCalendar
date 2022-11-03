@@ -64,7 +64,7 @@ class App extends React.Component {
 
         let token = getCookie("loginToken");
 
-        fetch('http://localhost:8000/schedule/create', {
+        fetch('http://localhost/api/schedule/create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -90,7 +90,7 @@ class App extends React.Component {
         let jsondata = {
             "UUID": event.id,
         }
-        fetch('http://localhost:8000/schedule/delete', {
+        fetch('http://localhost/api/schedule/delete', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

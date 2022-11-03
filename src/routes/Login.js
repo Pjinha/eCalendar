@@ -23,7 +23,7 @@ class Login extends React.Component {
         formData.set('username', form.username.value);
         formData.set('password', form.password.value);
 
-        fetch('http://localhost:8000/login', {
+        fetch('http://localhost/api/login', {
             method: 'POST',
             body: formData,
             headers: {
@@ -88,7 +88,7 @@ class Login extends React.Component {
                 </Row>
                 {
                     this.state.loggedIn && (
-                        <Navigate to="/" replace={true} />
+                        <Navigate to="/dashboard" replace={true} />
                     )
                 }
             </Container>

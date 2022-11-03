@@ -68,7 +68,7 @@ class RegisterModal extends Component {
         schema
             .validate(event)
             .then(() => {
-                fetch('http://localhost:8000/register', {
+                fetch('http://localhost/api/register', {
                     method: 'POST',
                     body: JSON.stringify(jsondata),
                     headers: {
