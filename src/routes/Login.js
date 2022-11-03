@@ -23,7 +23,7 @@ class Login extends React.Component {
         formData.set('username', form.username.value);
         formData.set('password', form.password.value);
 
-        fetch('http://localhost/api/login', {
+        fetch('http://qq0201.iptime.org/api/login', {
             method: 'POST',
             body: formData,
             headers: {

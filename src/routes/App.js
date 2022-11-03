@@ -64,7 +64,7 @@ class App extends React.Component {
 
         let token = getCookie("loginToken");
 
-        fetch('http://localhost/api/schedule/create', {
+        fetch('http://qq0201.iptime.org/api/schedule/create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -90,7 +90,7 @@ class App extends React.Component {
         let jsondata = {
             "UUID": event.id,
         }
-        fetch('http://localhost/api/schedule/delete', {
+        fetch('http://qq0201.iptime.org/api/schedule/delete', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
