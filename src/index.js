@@ -8,6 +8,8 @@ import {
 import App from './routes/App';
 import Login from "./routes/Login";
 import {CookiesProvider} from "react-cookie";
+import store from "./store";
+import {Provider} from "react-redux";
 
 const router = createBrowserRouter([
     {
@@ -22,9 +24,11 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <React.StrictMode>
-        <CookiesProvider>
-            <RouterProvider router={router}/>
-        </CookiesProvider>
+        <Provider store={store}>
+            <CookiesProvider>
+                <RouterProvider router={router}/>
+            </CookiesProvider>
+        </Provider>
     </React.StrictMode>
 );
 

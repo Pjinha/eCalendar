@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 import {Modal, Button, Form, Row, Col} from 'react-bootstrap';
 import * as yup from 'yup';
 import '../EventModal/EventModal.scss';
+import {API_URL} from "../../actions/hosts";
 
 /**
  * Table USERS
@@ -68,7 +69,7 @@ class RegisterModal extends Component {
         schema
             .validate(event)
             .then(() => {
-                fetch('http://qq0201.iptime.org/api/register', {
+                fetch(`http://${API_URL}/api/register`, {
                     method: 'POST',
                     body: JSON.stringify(jsondata),
                     headers: {

@@ -2,13 +2,16 @@ import React from 'react';
 import {Card, Col, Container, Row, Form, Button} from "react-bootstrap";
 import './login.scss';
 import Modal from "../components/RegisterModal";
-import {setCookie} from "../components/cookies/Cookies";
+import {getCookie, setCookie} from "../components/cookies/Cookies";
 import {Navigate} from "react-router-dom";
+import {API_URL} from "../actions/hosts";
 
 class Login extends React.Component {
 
     constructor(props) {
         super(props);
+
+        getCookie("token") && this.props.history.push("/dashboard");
 
         this.state = {
             loggedIn: false,
@@ -23,7 +26,7 @@ class Login extends React.Component {
         formData.set('username', form.username.value);
         formData.set('password', form.password.value);
 
-        fetch('http://qq0201.iptime.org/api/login', {
+        fetch(`http://${API_URL}/api/login`, {
             method: 'POST',
             body: formData,
             headers: {
