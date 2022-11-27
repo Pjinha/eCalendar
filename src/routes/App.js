@@ -14,8 +14,10 @@ class App extends React.Component {
 
     constructor(props) {
         super(props);
+
         // there is a bug with getting current data according to the timezone
         this.state = {
+            loggedIn: true,
             date: new Date(new Date().toLocaleDateString()),
             //add some sample data if there is nothing saved in localStorage
             events: localStorage.getItem('events') ? JSON.parse(localStorage.getItem('events')) : [],
@@ -23,16 +25,16 @@ class App extends React.Component {
             loadEvent: {},
             show: false
         };
-
-        if (!getCookie("token")) {
-            this.setState({
-                loggedIn: false
-            })
-        }
     }
 
     componentDidMount() {
         this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
+
+        if (!getCookie("loginToken")) {
+            this.setState({
+                loggedIn: false
+            })
+        }
     }
 
     //*************** Helper Functions **************/
@@ -237,7 +239,7 @@ class App extends React.Component {
                     </Row>
                 </Container>
                 {
-                    this.state.loggedIn ? null : <Navigate to="/Login" replace={true} />
+                    this.state.loggedIn ? null : <Navigate to="/" replace={true} />
                 }
             </>
         );

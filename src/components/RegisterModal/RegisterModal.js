@@ -78,15 +78,18 @@ class RegisterModal extends Component {
                     }
                 })
                     .then(res => res.json())
-                    .then(() => {
-                        this.closeModal();
-                        alert('회원가입 성공')
+                    .then((res) => {
+                        if (res.hasOwnProperty('detail')) {
+                            alert(`회원가입 실패 ${res.detail}`)
+                        } else {
+                            this.closeModal();
+                            alert('회원가입 성공')
+                        }
                     })
                     .catch(err => {
                         alert("ERROR!!");
                         console.error(err);
                     })
-                this.closeModal();
             })
             .catch(err => {
                 const error = {};
