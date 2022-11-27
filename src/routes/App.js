@@ -98,7 +98,7 @@ class App extends React.Component {
         let jsondata = {
             "UUID": event.id,
         }
-        fetch(`http://${API_URL}/api/schedule/delete`, {
+        fetch(`http://${API_URL}/schedule/delete`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

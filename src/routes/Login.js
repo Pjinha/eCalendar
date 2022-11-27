@@ -30,7 +30,7 @@ class Login extends React.Component {
         formData.set('username', form.username.value);
         formData.set('password', form.password.value);
 
-        fetch(`http://${API_URL}/api/login`, {
+        fetch(`http://${API_URL}/login`, {
             method: 'POST',
             body: formData,
             headers: {
