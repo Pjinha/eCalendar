@@ -182,6 +182,14 @@ class App extends React.Component {
                                 <Container>
                                     <Navbar.Brand href="#"><h1>eCalendar</h1></Navbar.Brand>
                                 </Container>
+                                <Container>
+                                    <Button>
+                                        Profile
+                                    </Button>
+                                    <Button>
+                                        Logout
+                                    </Button>
+                                </Container>
                             </Navbar>
                         </Col>
                     </Row>
@@ -193,6 +201,10 @@ class App extends React.Component {
                             <ListGroup className={"databases-list"}>
 
                             </ListGroup>
+                            <Button className="add-btn" onClick={this.handleShow}>Add</Button>
+                            <Modal deleteEvent={this.deleteEvent} updateEvent={this.updateEvent}
+                                   event={this.state.loadEvent} show={this.state.show} handleClose={this.handleClose}
+                                   addEvent={this.addEvent}/>
                         </Col>
                         <Col xs={12} sm={12} md={8} lg={7} xl={6}>
                             <Calendar changeDate={this.changeDate} updateEvent={this.prepareEventUpdate}
