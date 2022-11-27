@@ -4,19 +4,23 @@ import './login.scss';
 import Modal from "../components/RegisterModal";
 import {getCookie, setCookie} from "../components/cookies/Cookies";
 import {Navigate} from "react-router-dom";
-import {API_URL} from "../actions/hosts";
+import {API_URL} from "../helper";
 
 class Login extends React.Component {
 
     constructor(props) {
         super(props);
 
-        getCookie("token") && this.props.history.push("/dashboard");
-
         this.state = {
             loggedIn: false,
             show: false
         };
+
+        if (getCookie("token")) {
+            this.setState({
+                loggedIn: true
+            })
+        }
     }
 
     handleSubmit = (e) => {

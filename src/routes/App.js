@@ -7,7 +7,8 @@ import Modal from '../components/EventModal';
 import * as moment from 'moment';
 import {v4 as uuidv4} from 'uuid';
 import {getCookie} from "../components/cookies/Cookies";
-import {API_URL} from "../actions/hosts";
+import {API_URL} from "../helper";
+import {Navigate} from "react-router-dom";
 
 class App extends React.Component {
 
@@ -22,6 +23,12 @@ class App extends React.Component {
             loadEvent: {},
             show: false
         };
+
+        if (!getCookie("token")) {
+            this.setState({
+                loggedIn: false
+            })
+        }
     }
 
     componentDidMount() {
@@ -217,6 +224,9 @@ class App extends React.Component {
                         </Col>
                     </Row>
                 </Container>
+                {
+                    this.state.loggedIn ? null : <Navigate to="/Login" replace={true} />
+                }
             </>
         );
     }

@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import {Modal, Button, Form, Row, Col} from 'react-bootstrap';
 import * as yup from 'yup';
 import '../EventModal/EventModal.scss';
-import {API_URL} from "../../actions/hosts";
+import {API_URL} from "../../helper";
 
 /**
  * Table USERS
