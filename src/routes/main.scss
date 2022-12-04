@@ -51,6 +51,8 @@
 }
 
 .databases-container {
+  display: flex !important;
+  flex-direction: column;
   margin-top: 20px;
   border-right: 4px solid #fac863;
 }
@@ -69,10 +71,16 @@
   }
 }
 
+.menu {
+  display: flex;
+  gap: 1rem;
+}
+
 .databases-list {
     display: flex;
+    flex: 1;
+    margin: 0;
+    padding-top: 20px;
     flex-wrap: wrap;
     justify-content: center;
-    margin: 0;
-    padding: 0;
 }

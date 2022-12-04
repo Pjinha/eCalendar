@@ -6,6 +6,11 @@ import {getCookie, setCookie} from "../components/cookies/Cookies";
 import {Navigate} from "react-router-dom";
 import {API_URL} from "../helper";
 
+/*
+*  This is the login page of the application.
+*  It is responsible for rendering the login form.
+* */
+
 class Login extends React.Component {
 
     constructor(props) {

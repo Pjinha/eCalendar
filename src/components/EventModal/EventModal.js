@@ -61,6 +61,9 @@ class EventModal extends Component {
         const startTime = e.target.startTime.value;
         const endTime = e.target.endTime.value;
         const memo = e.target.memo.value;
+        if (!end) {
+            end = start;
+        }
         if (startTime) {
             start += `T${startTime}`;
         }
@@ -71,6 +74,7 @@ class EventModal extends Component {
             title,
             category,
             start,
+            end,
             allDay: false
         }
         if (startTime === "" || endTime === "") {
@@ -161,6 +165,8 @@ class EventModal extends Component {
                                         <Col sm="8">
                                             <Form.Control type="date" value={end} onChange={this.onChange}/>
                                         </Col>
+                                        <Form.Control.Feedback className="error"
+                                                               type="isInvalid">{this.state.error.errors && this.state.error.path === "end" && this.state.error.errors[0]}</Form.Control.Feedback>
                                     </Form.Group>
                                 </Form.Group>
                             </Form.Group>

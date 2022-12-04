@@ -1,5 +1,10 @@
 import {Cookies} from 'react-cookie'
 
+/*
+*  This is the cookie helper class.
+*  It is responsible for setting and getting cookies.
+* */
+
 const cookies = new Cookies()
 
 export const setCookie = (name, value, options) => {

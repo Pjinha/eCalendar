@@ -4,6 +4,11 @@ import * as yup from 'yup';
 import '../EventModal/EventModal.scss';
 import {API_URL} from "../../helper";
 
+/*
+* This is the register modal.
+* It is responsible for rendering the register form.
+* */
+
 /**
  * Table USERS
  *  - UUID

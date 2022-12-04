@@ -6,9 +6,15 @@ import {Col, Container, ListGroup, Navbar, Row} from 'react-bootstrap';
 import Modal from '../components/EventModal';
 import * as moment from 'moment';
 import {v4 as uuidv4} from 'uuid';
-import {getCookie} from "../components/cookies/Cookies";
+import {getCookie, setCookie} from "../components/cookies/Cookies";
 import {API_URL} from "../helper";
 import {Navigate} from "react-router-dom";
+
+/*
+* This is the main page of the application.
+* It is responsible for rendering the calendar and the events.
+*
+* */
 
 class App extends React.Component {
 
@@ -20,7 +26,7 @@ class App extends React.Component {
             loggedIn: true,
             date: new Date(new Date().toLocaleDateString()),
             //add some sample data if there is nothing saved in localStorage
-            events: localStorage.getItem('events') ? JSON.parse(localStorage.getItem('events')) : [],
+            events: [],
             today: [],
             loadEvent: {},
             show: false
@@ -28,6 +34,19 @@ class App extends React.Component {
     }
 
     componentDidMount() {
+        fetch(`${API_URL}/schedule`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(r => r.json())
+            .then(data => {
+                this.setState({
+                    events: data
+                })
+            })
+
         this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
 
         if (!getCookie("loginToken")) {
@@ -47,21 +66,27 @@ class App extends React.Component {
     saveStateToLocalStorage = () => {
         localStorage.setItem('events', JSON.stringify(this.state.events));
     }
+
     //*************************************************/
 
-    // update the state with the new event and make a copy of state to local storage for persistent data usage
+    /*
+    * this function is called from the modal component
+    * it is called when the user clicks on the add button
+    *
+    * update the state with the new event and make a copy of state to local storage for persistent data usage
+    * */
     addEvent = (event) => {
         event.id = uuidv4();
 
-        /*
-        *   UUID = Column(String, primary_key=True, index=True, server_default="uuid()")
-            ScheduleName = Column(String, index=True)
-            Owner = Column(Integer, ForeignKey("Users.UUID"))
-            Members = Column(String)
-            Category = Column(String)
-            Starts = Column(DateTime)
-            Ends = Column(DateTime)
-        * */
+        /* Backend schema
+                UUID = Column(String, primary_key=True, index=True, server_default="uuid()")
+                ScheduleName = Column(String, index=True)
+                Owner = Column(Integer, ForeignKey("Users.UUID"))
+                Members = Column(String)
+                Category = Column(String)
+                Starts = Column(DateTime)
+                Ends = Column(DateTime)
+        */
 
         let starts = moment(event.start).format("YYYY-MM-DDTHH:mm:ss.sssZ");
         let jsondata = {
@@ -74,6 +99,8 @@ class App extends React.Component {
 
         let token = getCookie("loginToken");
 
+
+        // Fetch API
         fetch(`http://${API_URL}/schedule/create`, {
             method: 'POST',
             headers: {
@@ -83,17 +110,28 @@ class App extends React.Component {
             body: JSON.stringify(jsondata)
         }).then((response) => {
             if (response.status === 200) {
+                // if the response is 200, then the event is added successfully
                 this.setState(({ events }) => ({
                     events: [...events, event]
                 }), () => {
+                    // after the state is updated, save the state to local storage
                     this.saveStateToLocalStorage();
                 })
 
+                // update the events for the current day
                 this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
+            } else {
+                // if the response is not 200, then the event is not added successfully, because of login token
+                setCookie("loginToken", "");
+                this.setState({
+                    loggedIn: false
+                })
             }
         });
     }
 
+
+    // same as addEvent, but for deleting
     deleteEvent = (event) => {
         const newEvents = this.state.events.filter(e => e.id !== event.id);
         let token = getCookie("loginToken");
@@ -118,6 +156,7 @@ class App extends React.Component {
         });
     }
 
+    // Update event is adding event after deleting the old event
     updateEvent = (event) => {
         //remove the old event from the state
         event.id = this.state.loadEvent.id;
@@ -126,7 +165,7 @@ class App extends React.Component {
         this.addEvent(event);
     }
 
-    //add the prev
+    // add the prev
     prepareEventUpdate = event => {
         // filter the event that is being clicked by using its id
         const currentEvent = this.state.events.filter(e => e.id === event.id)[0];
@@ -142,6 +181,8 @@ class App extends React.Component {
             show: true
         })
     }
+
+    // get the events for the selected day
     getEvents = date => {
         const events = [];
         this.state.events.forEach(event => {
@@ -158,6 +199,8 @@ class App extends React.Component {
             today: events.sort((a, b) => a.start > b.start)
         })
     }
+
+    // get the events for the selected day
     changeDate = (date) => {
         this.setState({
             date: new Date(date + 'T00:00:00'),
@@ -191,14 +234,14 @@ class App extends React.Component {
                                 <Container>
                                     <Navbar.Brand href="#"><h1>eCalendar</h1></Navbar.Brand>
                                 </Container>
-                                <Container>
+                                <div className={"menu"}>
                                     <Button>
                                         Profile
                                     </Button>
                                     <Button>
                                         Logout
                                     </Button>
-                                </Container>
+                                </div>
                             </Navbar>
                         </Col>
                     </Row>
@@ -210,7 +253,7 @@ class App extends React.Component {
                             <ListGroup className={"databases-list"}>
 
                             </ListGroup>
-                            <Button className="add-btn" onClick={this.handleShow}>Add</Button>
+                            <Button className="add-btn">Add</Button>
                             <Modal deleteEvent={this.deleteEvent} updateEvent={this.updateEvent}
                                    event={this.state.loadEvent} show={this.state.show} handleClose={this.handleClose}
                                    addEvent={this.addEvent}/>
