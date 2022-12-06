@@ -3,12 +3,13 @@ import Calendar from '../components/Calendar';
 import './main.scss';
 import Button from 'react-bootstrap/Button';
 import {Col, Container, ListGroup, Navbar, Row} from 'react-bootstrap';
-import Modal from '../components/EventModal';
+import EventModal from '../components/EventModal';
 import * as moment from 'moment';
 import {v4 as uuidv4} from 'uuid';
 import {getCookie, setCookie} from "../components/cookies/Cookies";
 import {API_URL} from "../helper";
 import {Navigate} from "react-router-dom";
+import DatabaseModal from "../components/DatabaseModal";
 
 /*
 * This is the main page of the application.
@@ -25,26 +26,65 @@ class App extends React.Component {
         this.state = {
             loggedIn: true,
             date: new Date(new Date().toLocaleDateString()),
-            //add some sample data if there is nothing saved in localStorage
+            database: [],
+            loadDatabase: {},
             events: [],
             today: [],
             loadEvent: {},
-            show: false
+            eventShow: false,
+            databaseShow: false,
+            noDatabase: false,
         };
     }
 
     componentDidMount() {
-        fetch(`${API_URL}/schedule`, {
+        fetch('http://' + API_URL + '/database', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': getCookie('loginToken')
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.UUID === null) {
+                    this.setState({
+                        databaseShow: true,
+                        noDatabase: true
+                    })
+                }
+                this.setState({
+                    database: data
+                })
+                if (data.hasOwnProperty("detail")){
+                    setCookie("loginToken", "");
+                    this.setState({
+                        loggedIn: false
+                    })
+                }
+            })
+        fetch(`http://${API_URL}/schedule`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': getCookie("loginToken")
             }
         })
             .then(r => r.json())
             .then(data => {
+                console.log(data);
                 this.setState({
                     events: data
                 })
+                if (data.hasOwnProperty("detail")){
+                    setCookie("loginToken", "");
+                    this.setState({
+                        loggedIn: false
+                    })
+                }
+            })
+            .catch(err => {
+                console.log(err);
             })
 
         this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
@@ -78,27 +118,16 @@ class App extends React.Component {
     addEvent = (event) => {
         event.id = uuidv4();
 
-        /* Backend schema
-                UUID = Column(String, primary_key=True, index=True, server_default="uuid()")
-                ScheduleName = Column(String, index=True)
-                Owner = Column(Integer, ForeignKey("Users.UUID"))
-                Members = Column(String)
-                Category = Column(String)
-                Starts = Column(DateTime)
-                Ends = Column(DateTime)
-        */
-
         let starts = moment(event.start).format("YYYY-MM-DDTHH:mm:ss.sssZ");
         let jsondata = {
             "UUID": event.id,
             "ScheduleName": event.title,
-            "Category": event.category,
+            "CalendarDatabase": event.category,
             "Starts": starts,
             "Owner": "UUID",
         }
 
         let token = getCookie("loginToken");
-
 
         // Fetch API
         fetch(`http://${API_URL}/schedule/create`, {
@@ -178,22 +207,24 @@ class App extends React.Component {
 
         this.setState({
             loadEvent: currentEvent,
-            show: true
+            eventShow: true
         })
     }
 
     // get the events for the selected day
     getEvents = date => {
         const events = [];
-        this.state.events.forEach(event => {
-            if ((moment(event.start).isBefore(date) && moment(event.end).isAfter(date)) || moment(event.start, 'YYYY-MM-DD').isSame(date)) {
-                let start = event.start.slice(11, 16);
-                if (start === "") {
-                    start = 'All Day'
+        if (this.state.events.length > 0) {
+            this.state.events.forEach(event => {
+                if ((moment(event.start).isBefore(date) && moment(event.end).isAfter(date)) || moment(event.start, 'YYYY-MM-DD').isSame(date)) {
+                    let start = event.start.slice(11, 16);
+                    if (start === "") {
+                        start = 'All Day'
+                    }
+                    events.push({title: event.title, start});
                 }
-                events.push({title: event.title, start});
-            }
-        })
+            })
+        }
         // sort events in order according to the time of the day ASC
         this.setState({
             today: events.sort((a, b) => a.start > b.start)
@@ -204,21 +235,102 @@ class App extends React.Component {
     changeDate = (date) => {
         this.setState({
             date: new Date(date + 'T00:00:00'),
-            show: false
+            eventShow: false
         })
         this.getEvents(date);
     }
-    handleShow = () => {
+    handleEventShow = () => {
         this.setState({
-            show: true
+            eventShow: true
         })
     }
-    handleClose = () => {
+    handleEventClose = () => {
         this.setState({
             loadEvent: {},
-            show: false
+            eventShow: false
         }, () => {
             this.getEvents(moment(this.state.date).format('YYYY-MM-DD'));
+        })
+    }
+
+    handleDatabaseShow = () => {
+        this.setState({
+            databaseShow: true
+        })
+    }
+    addDatabase = (database) => {
+        let token = getCookie("loginToken");
+        let jsondata = {
+            "DatabaseName": database,
+        }
+        fetch(`http://${API_URL}/database/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token
+            },
+            body: JSON.stringify(jsondata)
+        }).then((response) => {
+            if (response.status === 200) {
+                this.setState({
+                    databaseShow: false
+                })
+            }
+        });
+    }
+
+    deleteDatabase = (database) => {
+        let token = getCookie("loginToken");
+        let jsondata = {
+            "DatabaseName": database,
+        }
+        fetch(`http://${API_URL}/database/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token
+            },
+            body: JSON.stringify(jsondata)
+        }).then((response) => {
+            if (response.status === 200) {
+                this.setState({
+                    databaseShow: false
+                })
+            }
+        });
+    }
+
+    updateDatabase = (database) => {
+        let token = getCookie("loginToken");
+        let jsondata = {
+            "DatabaseName": database,
+        }
+        fetch(`http://${API_URL}/database/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token
+            },
+            body: JSON.stringify(jsondata)
+        }).then((response) => {
+            if (response.status === 200) {
+                this.setState({
+                    databaseShow: false
+                })
+            }
+        });
+    }
+
+    handleDatabaseClose = () => {
+        this.setState({
+            databaseShow: false
+        })
+    }
+
+    handleLogout = () => {
+        setCookie("loginToken", "");
+        this.setState({
+            loggedIn: false
         })
     }
 
@@ -238,7 +350,7 @@ class App extends React.Component {
                                     <Button>
                                         Profile
                                     </Button>
-                                    <Button>
+                                    <Button onClick={this.handleLogout}>
                                         Logout
                                     </Button>
                                 </div>
@@ -253,10 +365,11 @@ class App extends React.Component {
                             <ListGroup className={"databases-list"}>
 
                             </ListGroup>
-                            <Button className="add-btn">Add</Button>
-                            <Modal deleteEvent={this.deleteEvent} updateEvent={this.updateEvent}
-                                   event={this.state.loadEvent} show={this.state.show} handleClose={this.handleClose}
-                                   addEvent={this.addEvent}/>
+                            <Button className="add-btn" onClick={this.handleDatabaseShow}>Add</Button>
+                            <DatabaseModal
+                                   addDatabase={this.addDatabase} deleteDatabase={this.deleteDatabase} updateDatabase={this.updateDatabase}
+                                   database={this.state.loadDatabase} noDatabase={this.state.noDatabase}
+                                   show={this.state.databaseShow} handleClose={this.handleDatabaseClose}/>
                         </Col>
                         <Col xs={12} sm={12} md={8} lg={7} xl={6}>
                             <Calendar changeDate={this.changeDate} updateEvent={this.prepareEventUpdate}
@@ -274,9 +387,9 @@ class App extends React.Component {
                                     : <ListGroup.Item>No Appoinments</ListGroup.Item>
                                 }
                             </ListGroup>
-                            <Button className="add-btn" onClick={this.handleShow}>Add</Button>
-                            <Modal deleteEvent={this.deleteEvent} updateEvent={this.updateEvent}
-                                   event={this.state.loadEvent} show={this.state.show} handleClose={this.handleClose}
+                            <Button className="add-btn" onClick={this.handleEventShow}>Add</Button>
+                            <EventModal deleteEvent={this.deleteEvent} updateEvent={this.updateEvent}
+                                   event={this.state.loadEvent} show={this.state.eventShow} handleClose={this.handleEventClose}
                                    addEvent={this.addEvent}/>
                         </Col>
                     </Row>

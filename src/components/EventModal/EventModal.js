@@ -60,8 +60,8 @@ class EventModal extends Component {
         let end = moment(e.target.end.value).format('YYYY-MM-DD');
         const startTime = e.target.startTime.value;
         const endTime = e.target.endTime.value;
-        const memo = e.target.memo.value;
-        if (!end) {
+        // const memo = e.target.memo.value;
+        if (end === "Invalid date") {
             end = start;
         }
         if (startTime) {
