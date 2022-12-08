@@ -56,6 +56,22 @@ class Calendar extends Component {
                     }
                     // timeFormat='h:mm'
                     plugins={[dayGridPlugin, interactionPlugin]}
+                    {/* TODO: Fix props.events following the example below or... make it work with the current code
+                          {
+                            title: 'All Day Event',
+                            start: '2018-01-01',
+                          },
+                          {
+                            title: 'Long Event',
+                            start: '2018-01-07',
+                            end: '2018-01-10'
+                          },
+                          {
+                            groupId: 999,
+                            title: 'Repeating Event',
+                            start: '2018-01-09T16:00:00'
+                          },
+                    */}
                     events={this.props.events != null ? this.props.events : ""}
                     eventTimeFormat={{
                         hour: '2-digit', //2-digit, numeric

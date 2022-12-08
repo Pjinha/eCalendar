@@ -34,6 +34,7 @@ class App extends React.Component {
             eventShow: false,
             databaseShow: false,
             noDatabase: false,
+            isLoading: false,
         };
     }
 
@@ -47,6 +48,7 @@ class App extends React.Component {
         })
             .then(response => response.json())
             .then(data => {
+                // console.log(data);
                 if (data.UUID === null) {
                     this.setState({
                         databaseShow: true,
@@ -72,9 +74,10 @@ class App extends React.Component {
         })
             .then(r => r.json())
             .then(data => {
-                console.log(data);
-                this.setState({
+                this.setState(({
                     events: data
+                }), () => {
+                    this.saveStateToLocalStorage();
                 })
                 if (data.hasOwnProperty("detail")){
                     setCookie("loginToken", "");
@@ -82,18 +85,21 @@ class App extends React.Component {
                         loggedIn: false
                     })
                 }
+                this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
             })
             .catch(err => {
                 console.log(err);
             })
-
-        this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
 
         if (!getCookie("loginToken")) {
             this.setState({
                 loggedIn: false
             })
         }
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+
     }
 
     //*************** Helper Functions **************/
@@ -116,13 +122,11 @@ class App extends React.Component {
     * update the state with the new event and make a copy of state to local storage for persistent data usage
     * */
     addEvent = (event) => {
-        event.id = uuidv4();
-
-        let starts = moment(event.start).format("YYYY-MM-DDTHH:mm:ss.sssZ");
+        let starts = moment(event.Starts).format("YYYY-MM-DDTHH:mm:ss.sssZ");
         let jsondata = {
-            "UUID": event.id,
-            "ScheduleName": event.title,
-            "CalendarDatabase": event.category,
+            "UUID": "UUID",
+            "ScheduleName": event.ScheduleName,
+            "CalendarDatabase": event.CalendarDatabase,
             "Starts": starts,
             "Owner": "UUID",
         }
@@ -216,12 +220,12 @@ class App extends React.Component {
         const events = [];
         if (this.state.events.length > 0) {
             this.state.events.forEach(event => {
-                if ((moment(event.start).isBefore(date) && moment(event.end).isAfter(date)) || moment(event.start, 'YYYY-MM-DD').isSame(date)) {
-                    let start = event.start.slice(11, 16);
+                if ((moment(event.Starts).isBefore(date) && moment(event.Ends).isAfter(date)) || moment(event.Starts, 'YYYY-MM-DD').isSame(date)) {
+                    let start = event.Starts.slice(11, 16);
                     if (start === "") {
                         start = 'All Day'
                     }
-                    events.push({title: event.title, start});
+                    events.push({title: event.ScheduleName, start});
                 }
             })
         }
@@ -260,9 +264,11 @@ class App extends React.Component {
     }
     addDatabase = (database) => {
         let token = getCookie("loginToken");
+        let databaseName = database.title
+        console.log(databaseName)
         let jsondata = {
             "UUID": 'UUID',
-            "DatabaseName": database,
+            "DatabaseName": databaseName,
             "Owner": 'UUID',
         }
         fetch(`http://${API_URL}/database/create`, {
@@ -365,7 +371,11 @@ class App extends React.Component {
                                 <h2>Databases</h2>
                             </div>
                             <ListGroup className={"databases-list"}>
-
+                                {this.state.database.length ? this.state.database.map((database, i) => <ListGroup.Item key={i}>
+                                        <b>{database.DatabaseName}</b>
+                                    </ListGroup.Item>)
+                                    : <ListGroup.Item>No Database</ListGroup.Item>
+                                }
                             </ListGroup>
                             <Button className="add-btn" onClick={this.handleDatabaseShow}>Add</Button>
                             <DatabaseModal
@@ -391,6 +401,7 @@ class App extends React.Component {
                             </ListGroup>
                             <Button className="add-btn" onClick={this.handleEventShow}>Add</Button>
                             <EventModal deleteEvent={this.deleteEvent} updateEvent={this.updateEvent}
+                                        database={this.state.database}
                                    event={this.state.loadEvent} show={this.state.eventShow} handleClose={this.handleEventClose}
                                    addEvent={this.addEvent}/>
                         </Col>

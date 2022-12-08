@@ -6,13 +6,13 @@ import * as yup from 'yup';
 import './EventModal.scss';
 
 let schema = yup.object().shape({
-    title: yup.string().trim('The title cannot include leading and trailing spaces').strict(true).required('Title is required'),
-    category: yup.string().required('Category is required'),
-    start: yup.date().required(),
-    end: yup.date().min(yup.ref('start'), () => `End date can not be before start date!`),
-    startTime: yup.string(),
-    endTime: yup.string(),
-    memo: yup.string()
+    ScheduleName: yup.string().trim('The title cannot include leading and trailing spaces').strict(true).required('Title is required'),
+    CalendarDatabase: yup.string(),
+    Starts: yup.date().required(),
+    Ends: yup.date().min(yup.ref('start'), () => `End date can not be before start date!`).nullable().transform(v => (v instanceof Date && !isNaN(v) ? v : null)),
+    StartsTime: yup.string(),
+    EndsTime: yup.string(),
+    // memo: yup.string()
 });
 
 class EventModal extends Component {
@@ -20,13 +20,12 @@ class EventModal extends Component {
         super(props);
         this.state = {
             event: {
-                title: "",
-                category: "",
-                start: '',
-                end: '',
-                startTime: '',
-                endTime: '',
-                memo: ''
+                ScheduleName: "",
+                CalendarDatabase: "",
+                Starts: '',
+                Ends: '',
+                StartsTime: '',
+                EndsTime: '',
             },
             hasError: false,
             error: {}
@@ -54,38 +53,34 @@ class EventModal extends Component {
 
     handleAddUpdateEvent = (e, status) => {
         e.preventDefault();
-        const title = e.target.title.value;
-        const category = e.target.category.value;
-        let start = moment(e.target.start.value).format('YYYY-MM-DD');
-        let end = moment(e.target.end.value).format('YYYY-MM-DD');
-        const startTime = e.target.startTime.value;
-        const endTime = e.target.endTime.value;
+        const ScheduleName = e.target.ScheduleName.value;
+        const CalendarDatabase = e.target.CalendarDatabase.value;
+        let Starts = moment(e.target.Starts.value).format('YYYY-MM-DD');
+        let Ends = moment(e.target.Ends.value).format('YYYY-MM-DD');
+        const StartsTime = e.target.StartsTime.value;
+        const EndsTime = e.target.EndsTime.value;
         // const memo = e.target.memo.value;
-        if (end === "Invalid date") {
-            end = start;
+        if (StartsTime) {
+            Starts += `T${StartsTime}`;
         }
-        if (startTime) {
-            start += `T${startTime}`;
-        }
-        if (endTime) {
-            end += `T${endTime}`;
+        if (EndsTime) {
+            Ends += `T${EndsTime}`;
         }
         const event = {
-            title,
-            category,
-            start,
-            end,
+            ScheduleName,
+            CalendarDatabase,
+            Starts,
+            Ends,
             allDay: false
         }
-        if (startTime === "" || endTime === "") {
+        if (StartsTime === "" || EndsTime === "") {
             event.allDay = true;
         }
 
         schema
             .validate(event)
             .then(() => {
-                //if status===false add new event otherwise update
-                // TODO: add a new event with fetch request
+                event.Ends = moment(event.Starts);
                 if (!status) {
                     this.props.addEvent(event);
                 } else {
@@ -95,6 +90,7 @@ class EventModal extends Component {
             })
             .catch(err => {
                 this.setState({hasError: true, error: err});
+                console.log(err)
             });
     }
 
@@ -102,20 +98,19 @@ class EventModal extends Component {
         //reset state before closing
         this.setState({
             event: {
-                title: "",
-                category: "",
-                start: '',
-                end: '',
-                startTime: '',
-                endTime: '',
-                memo: ''
+                ScheduleName: "",
+                CalendarDatabase: "",
+                Starts: '',
+                Ends: '',
+                StartsTime: '',
+                EndsTime: '',
             }
         });
         this.props.handleClose()
     }
 
     render() {
-        const {title, category, start, end, startTime, endTime, memo} = this.state.event;
+        const {ScheduleName, CalendarDatabase, Starts, Ends, StartsTime, EndsTime} = this.state.event;
         return (
             <div className="modal">
                 <Modal
@@ -127,43 +122,45 @@ class EventModal extends Component {
                     </Modal.Header>
                     <Modal.Body>
                         <Form onSubmit={e => this.handleAddUpdateEvent(e, Object.keys(this.props.event).length !== 0)}>
-                            <Form.Group as={Row} className={"mb-3"} controlId="title">
+                            <Form.Group as={Row} className={"mb-3"} controlId="ScheduleName">
                                 <Form.Label column sm="2">Title <span className="required">*</span></Form.Label>
                                 <Col sm="10">
-                                    <Form.Control required type="text" placeholder="Event Title" value={title}
+                                    <Form.Control required type="text" placeholder="Event Title" value={ScheduleName}
                                                   onChange={this.onChange}
                                                   isInvalid={this.state.error.path === "title"}/>
                                     <Form.Control.Feedback className="error"
                                                            type="isInvalid">{this.state.error.errors && this.state.error.path === "title" && this.state.error.errors[0]}</Form.Control.Feedback>
                                 </Col>
                             </Form.Group>
-                            <Form.Group as={Row} className={"mb-3"} controlId="category">
-                                <Form.Label column sm="2">Category <span className="required">*</span></Form.Label>
+                            <Form.Group as={Row} className={"mb-3"} controlId="CalendarDatabase">
+                                <Form.Label column sm="2">Database <span className="required">*</span></Form.Label>
                                 <Col sm="10">
-                                    <Form.Control required type="text" placeholder="Category" value={category}
-                                                  onChange={this.onChange}
-                                                  isInvalid={this.state.error.path === "category"}/>
-                                    <Form.Control.Feedback className="error"
-                                                           type="isInvalid">{this.state.error.errors && this.state.error.path === "category" && this.state.error.errors[0]}</Form.Control.Feedback>
+                                    <Form.Select aria-label="Default select example">
+                                        {
+                                            this.props.database.map((database, i) =>
+                                                <option key={i} value={database.UUID}>{database.DatabaseName}</option>
+                                            )
+                                        }
+                                    </Form.Select>
                                 </Col>
                             </Form.Group>
                             <Form.Group as={Row} className={"mb-3"}>
                                 <Form.Group as={Col}>
-                                    <Form.Group as={Row} className={"mb-3"} controlId="start">
+                                    <Form.Group as={Row} className={"mb-3"} controlId="Starts">
                                         <Form.Label column sm="4">Start Date <span
                                             className="required">*</span></Form.Label>
                                         <Col sm="8">
-                                            <Form.Control required type="date" value={start} onChange={this.onChange}/>
+                                            <Form.Control required type="date" value={Starts} onChange={this.onChange}/>
                                         </Col>
                                     </Form.Group>
 
                                 </Form.Group>
 
                                 <Form.Group as={Col}>
-                                    <Form.Group as={Row} className={"mb-3"} controlId="end">
+                                    <Form.Group as={Row} className={"mb-3"} controlId="Ends">
                                         <Form.Label column sm="4">End Date</Form.Label>
                                         <Col sm="8">
-                                            <Form.Control type="date" value={end} onChange={this.onChange}/>
+                                            <Form.Control type="date" value={Ends} onChange={this.onChange}/>
                                         </Col>
                                         <Form.Control.Feedback className="error"
                                                                type="isInvalid">{this.state.error.errors && this.state.error.path === "end" && this.state.error.errors[0]}</Form.Control.Feedback>
@@ -172,46 +169,46 @@ class EventModal extends Component {
                             </Form.Group>
                             <Form.Group as={Row} className={"mb-3"}>
                                 <Form.Group as={Col}>
-                                    <Form.Group as={Row} className={"mb-3"} controlId="startTime">
+                                    <Form.Group as={Row} className={"mb-3"} controlId="StartsTime">
                                         <Form.Label column sm="4">Begins</Form.Label>
                                         <Col sm="8">
-                                            <Form.Control type="time" value={startTime} onChange={this.onChange}/>
+                                            <Form.Control type="time" value={StartsTime} onChange={this.onChange}/>
                                         </Col>
                                     </Form.Group>
                                 </Form.Group>
 
                                 <Form.Group as={Col}>
-                                    <Form.Group as={Row} className={"mb-3"} controlId="endTime">
+                                    <Form.Group as={Row} className={"mb-3"} controlId="EndsTime">
                                         <Form.Label column sm="4">Ends</Form.Label>
                                         <Col sm="8">
-                                            <Form.Control type="time" value={endTime} onChange={this.onChange}/>
+                                            <Form.Control type="time" value={EndsTime} onChange={this.onChange}/>
                                         </Col>
                                     </Form.Group>
 
                                 </Form.Group>
                             </Form.Group>
-                            <Form.Group as={Row} className={"mb-3"} controlId="memo">
-                                <Form.Label column sm="2">
-                                    Memo
-                                </Form.Label>
-                                <Col sm="10">
-                                    <Form.Control as="textarea" value={memo} onChange={this.onChange}/>
-                                </Col>
-                            </Form.Group>
-                            <Form.Group as={Row} className={"mb-3"} controlId="todos">
-                                <Form.Label column sm="2">
-                                    Todos
-                                </Form.Label>
-                                <Col sm="10">
-                                    <InputGroup>
-                                        <InputGroup.Checkbox aria-label="Checkbox for following text input"/>
-                                        <Form.Control type="textbox" value={memo} onChange={this.onChange}/>
-                                        <Button variant="outline-secondary" id="button-addon2">
-                                            +
-                                        </Button>
-                                    </InputGroup>
-                                </Col>
-                            </Form.Group>
+                            {/*<Form.Group as={Row} className={"mb-3"} controlId="memo">*/}
+                            {/*    <Form.Label column sm="2">*/}
+                            {/*        Memo*/}
+                            {/*    </Form.Label>*/}
+                            {/*    <Col sm="10">*/}
+                            {/*        <Form.Control as="textarea" value={memo} onChange={this.onChange}/>*/}
+                            {/*    </Col>*/}
+                            {/*</Form.Group>*/}
+                            {/*<Form.Group as={Row} className={"mb-3"} controlId="todos">*/}
+                            {/*    <Form.Label column sm="2">*/}
+                            {/*        Todos*/}
+                            {/*    </Form.Label>*/}
+                            {/*    <Col sm="10">*/}
+                            {/*        <InputGroup>*/}
+                            {/*            <InputGroup.Checkbox aria-label="Checkbox for following text input"/>*/}
+                            {/*            <Form.Control type="textbox" value={memo} onChange={this.onChange}/>*/}
+                            {/*            <Button variant="outline-secondary" id="button-addon2">*/}
+                            {/*                +*/}
+                            {/*            </Button>*/}
+                            {/*        </InputGroup>*/}
+                            {/*    </Col>*/}
+                            {/*</Form.Group>*/}
                             <Row>
                                 <Col align="center">
                                     <Button variant="primary" type="submit">
