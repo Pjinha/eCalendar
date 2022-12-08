@@ -261,7 +261,9 @@ class App extends React.Component {
     addDatabase = (database) => {
         let token = getCookie("loginToken");
         let jsondata = {
+            "UUID": 'UUID',
             "DatabaseName": database,
+            "Owner": 'UUID',
         }
         fetch(`http://${API_URL}/database/create`, {
             method: 'POST',
