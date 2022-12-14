@@ -7,7 +7,7 @@ import EventModal from '../components/EventModal';
 import * as moment from 'moment';
 import {v4 as uuidv4} from 'uuid';
 import {getCookie, setCookie} from "../components/cookies/Cookies";
-import {API_URL} from "../helper";
+import {API_URL, saveStateToLocalStorage} from "../helper";
 import {Navigate} from "react-router-dom";
 import DatabaseModal from "../components/DatabaseModal";
 
@@ -46,10 +46,22 @@ class App extends React.Component {
                 'Authorization': getCookie('loginToken')
             }
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        setCookie('loginToken', '');
+                        this.setState({loggedIn: false});
+                    }
+                    else {
+                        const error = (response && response.message) || response.statusText;
+                        throw new Error(error);
+                    }
+                }
+                return response.json()
+            })
             .then(data => {
-                // console.log(data);
-                if (data.UUID === null) {
+                console.log(data);
+                if (data.length === 0) {
                     this.setState({
                         databaseShow: true,
                         noDatabase: true
@@ -58,12 +70,9 @@ class App extends React.Component {
                 this.setState({
                     database: data
                 })
-                if (data.hasOwnProperty("detail")){
-                    setCookie("loginToken", "");
-                    this.setState({
-                        loggedIn: false
-                    })
-                }
+            })
+            .catch(error => {
+                console.error('There was an error!', error);
             })
         fetch(`http://${API_URL}/schedule`, {
             method: 'GET',
@@ -72,23 +81,53 @@ class App extends React.Component {
                 'Authorization': getCookie("loginToken")
             }
         })
-            .then(r => r.json())
-            .then(data => {
-                this.setState(({
-                    events: data
-                }), () => {
-                    this.saveStateToLocalStorage();
-                })
-                if (data.hasOwnProperty("detail")){
-                    setCookie("loginToken", "");
-                    this.setState({
-                        loggedIn: false
-                    })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        setCookie('loginToken', '');
+                        this.setState({loggedIn: false});
+                    }
+                    else {
+                        const error = (response && response.message) || response.statusText;
+                        throw new Error(error);
+                    }
                 }
+                return response.json()
+            })
+            .then(data => {
+                const map = {
+                    'UUID': 'id',
+                    'ScheduleName': 'title',
+                    'Starts': 'start',
+                    'Ends': 'end',
+                    'Owner': 'owner',
+                    'Editor': 'editor',
+                    'AllDay': 'allDay',
+                }
+                const res = [];
+                data.forEach(event => {
+                    const replacedKeysInData = {}
+                    Object.keys(event).forEach((key) => {
+                        const keyFromMap = map[key] || key;
+                        replacedKeysInData[keyFromMap] = event[key]
+                    })
+                    if (replacedKeysInData.end == null && moment(replacedKeysInData.start).format("HH:mm") === "00:00") {
+                        replacedKeysInData.allDay = true
+                    }
+                    res.push(replacedKeysInData);
+                })
+
+                console.log(res)
+
+                this.setState(({
+                    events: res
+                }), () => {
+                    saveStateToLocalStorage(this.state);
+                })
                 this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
             })
-            .catch(err => {
-                console.log(err);
+            .catch(error => {
+                console.error('There was an error!', error);
             })
 
         if (!getCookie("loginToken")) {
@@ -98,23 +137,6 @@ class App extends React.Component {
         }
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
-
-    }
-
-    //*************** Helper Functions **************/
-    getTime = date => {
-        return moment(date).format("hh:mm");
-    }
-    getDate = date => {
-        return moment(date).format("YYYY-MM-DD");
-    }
-    saveStateToLocalStorage = () => {
-        localStorage.setItem('events', JSON.stringify(this.state.events));
-    }
-
-    //*************************************************/
-
     /*
     * this function is called from the modal component
     * it is called when the user clicks on the add button
@@ -122,13 +144,21 @@ class App extends React.Component {
     * update the state with the new event and make a copy of state to local storage for persistent data usage
     * */
     addEvent = (event) => {
-        let starts = moment(event.Starts).format("YYYY-MM-DDTHH:mm:ss.sssZ");
+        let starts = moment(event.start).format("YYYY-MM-DD") + "T" + moment(event.startTime).format("HH:mm");
+        let ends = moment(event.end).format("YYYY-MM-DD") + "T" + moment(event.endTime).format("HH:mm");
+
+        if (event.end === null || event.end === "Invalid date") {
+            ends = null;
+        }
+
         let jsondata = {
-            "UUID": "UUID",
-            "ScheduleName": event.ScheduleName,
+            "UUID": event.id ? event.id : uuidv4(),
+            "ScheduleName": event.title,
             "CalendarDatabase": event.CalendarDatabase,
             "Starts": starts,
+            "Ends": ends,
             "Owner": "UUID",
+            "AllDay": event.allDay ? event.allDay : false
         }
 
         let token = getCookie("loginToken");
@@ -143,12 +173,33 @@ class App extends React.Component {
             body: JSON.stringify(jsondata)
         }).then((response) => {
             if (response.status === 200) {
+                // const map = {
+                //     'UUID': 'id',
+                //     'ScheduleName': 'title',
+                //     'Starts': 'start',
+                //     'Ends': 'end',
+                //     'Owner': 'owner',
+                //     'Editor': 'editor',
+                //     'AllDay': 'allDay',
+                // }
+                // const res = [];
+                // const replacedKeysInData = {}
+                // Object.keys(jsondata).forEach((key) => {
+                //     const keyFromMap = map[key] || key;
+                //     replacedKeysInData[keyFromMap] = event[key]
+                // })
+                // if (replacedKeysInData.end == null && moment(replacedKeysInData.start).format("HH:mm") === "00:00") {
+                //     replacedKeysInData.allDay = true
+                // }
+                // res.push(replacedKeysInData);
+
+                console.log(event);
                 // if the response is 200, then the event is added successfully
                 this.setState(({ events }) => ({
                     events: [...events, event]
                 }), () => {
                     // after the state is updated, save the state to local storage
-                    this.saveStateToLocalStorage();
+                    saveStateToLocalStorage(this.state);
                 })
 
                 // update the events for the current day
@@ -168,6 +219,7 @@ class App extends React.Component {
     deleteEvent = (event) => {
         const newEvents = this.state.events.filter(e => e.id !== event.id);
         let token = getCookie("loginToken");
+        console.log("newEvents" + newEvents);
         let jsondata = {
             "UUID": event.id,
         }
@@ -183,7 +235,7 @@ class App extends React.Component {
                 this.setState({
                     events: newEvents
                 }, () => {
-                    this.saveStateToLocalStorage();
+                    saveStateToLocalStorage(this.state);
                 })
             }
         });
@@ -203,12 +255,6 @@ class App extends React.Component {
         // filter the event that is being clicked by using its id
         const currentEvent = this.state.events.filter(e => e.id === event.id)[0];
 
-        currentEvent.startTime = this.getTime(currentEvent.start);
-        currentEvent.start = this.getDate(currentEvent.start);
-
-        currentEvent.endTime = this.getTime(currentEvent.end);
-        currentEvent.end = this.getDate(currentEvent.end);
-
         this.setState({
             loadEvent: currentEvent,
             eventShow: true
@@ -220,12 +266,12 @@ class App extends React.Component {
         const events = [];
         if (this.state.events.length > 0) {
             this.state.events.forEach(event => {
-                if ((moment(event.Starts).isBefore(date) && moment(event.Ends).isAfter(date)) || moment(event.Starts, 'YYYY-MM-DD').isSame(date)) {
-                    let start = event.Starts.slice(11, 16);
+                if ((moment(event.start).isBefore(date) && moment(event.end).isAfter(date)) || moment(event.start, 'YYYY-MM-DD').isSame(date)) {
+                    let start = event.start.slice(11, 16);
                     if (start === "") {
                         start = 'All Day'
                     }
-                    events.push({title: event.ScheduleName, start});
+                    events.push({title: event.title, start});
                 }
             })
         }
@@ -278,13 +324,23 @@ class App extends React.Component {
                 'Authorization': token
             },
             body: JSON.stringify(jsondata)
-        }).then((response) => {
-            if (response.status === 200) {
-                this.setState({
-                    databaseShow: false
+        })
+            .then((response) => {
+                if (response.status === 200) {
+                    this.setState({
+                        databaseShow: false
+                    })
+                }
+                return response.json();
+            })
+            .then((data) => {
+                this.setState(({ database }) => ({
+                    database: [...database, data]
+                }), () => {
+                    // after the state is updated, save the state to local storage
+                    saveStateToLocalStorage(this.state);
                 })
-            }
-        });
+            });
     }
 
     deleteDatabase = (database) => {
@@ -347,6 +403,9 @@ class App extends React.Component {
         const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         return (
             <>
+                {
+                    this.state.loggedIn ? null : <Navigate to="/" replace={true} />
+                }
                 <Container fluid>
                     <Row>
                         <Col md={12}>
@@ -407,9 +466,6 @@ class App extends React.Component {
                         </Col>
                     </Row>
                 </Container>
-                {
-                    this.state.loggedIn ? null : <Navigate to="/" replace={true} />
-                }
             </>
         );
     }

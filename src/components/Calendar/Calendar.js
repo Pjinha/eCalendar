@@ -20,11 +20,24 @@ import './Calendar.scss';
 * */
 
 class Calendar extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            events: {}
+        }
+    }
+
     static propTypes = {
         props: PropTypes.object
     }
     calendarComponentRef = React.createRef();
 
+    static getDerivedStateFromProps(props, state) {
+        if (Object.keys(props.events).length !== 0) {
+            return {events: props.events};
+        }
+        return state;
+    }
     handleDateClick = (arg) => {
         //Get all the events for the date that was clicked
         this.props.changeDate(arg.dateStr);
@@ -38,7 +51,7 @@ class Calendar extends Component {
                     dateClick={this.handleDateClick}
                     //get the event that is about to be updated
                     eventClick={({event}) => this.props.updateEvent(event)}
-                    defaultView="dayGridMonth"
+                    initialView="dayGridMonth"
                     ref={this.calendarComponentRef}
                     headerToolbar={{
                         left: 'prev',
@@ -56,23 +69,7 @@ class Calendar extends Component {
                     }
                     // timeFormat='h:mm'
                     plugins={[dayGridPlugin, interactionPlugin]}
-                    {/* TODO: Fix props.events following the example below or... make it work with the current code
-                          {
-                            title: 'All Day Event',
-                            start: '2018-01-01',
-                          },
-                          {
-                            title: 'Long Event',
-                            start: '2018-01-07',
-                            end: '2018-01-10'
-                          },
-                          {
-                            groupId: 999,
-                            title: 'Repeating Event',
-                            start: '2018-01-09T16:00:00'
-                          },
-                    */}
-                    events={this.props.events != null ? this.props.events : ""}
+                    events={this.state.events != null ? this.state.events : ""}
                     eventTimeFormat={{
                         hour: '2-digit', //2-digit, numeric
                         minute: '2-digit', //2-digit, numeric

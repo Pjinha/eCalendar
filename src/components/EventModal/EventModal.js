@@ -1,17 +1,18 @@
 import React, {Component} from 'react'
-import {Modal, Button, Form, Row, Col, InputGroup} from 'react-bootstrap';
+import {Modal, Button, Form, Row, Col} from 'react-bootstrap';
 // there is a findDomNode warning that needs to be fixed
 import * as moment from 'moment';
 import * as yup from 'yup';
 import './EventModal.scss';
+import {getDate} from "../../helper";
 
 let schema = yup.object().shape({
-    ScheduleName: yup.string().trim('The title cannot include leading and trailing spaces').strict(true).required('Title is required'),
+    title: yup.string().trim('The title cannot include leading and trailing spaces').strict(true).required('Title is required'),
     CalendarDatabase: yup.string(),
-    Starts: yup.date().required(),
-    Ends: yup.date().min(yup.ref('start'), () => `End date can not be before start date!`).nullable().transform(v => (v instanceof Date && !isNaN(v) ? v : null)),
-    StartsTime: yup.string(),
-    EndsTime: yup.string(),
+    start: yup.date().required(),
+    end: yup.date().min(yup.ref('start'), () => `End date can not be before start date!`).nullable().transform(v => (v instanceof Date && !isNaN(v) ? v : null)),
+    startTime: yup.string(),
+    endTime: yup.string(),
     // memo: yup.string()
 });
 
@@ -20,12 +21,13 @@ class EventModal extends Component {
         super(props);
         this.state = {
             event: {
-                ScheduleName: "",
+                title: "",
                 CalendarDatabase: "",
-                Starts: '',
-                Ends: '',
-                StartsTime: '',
-                EndsTime: '',
+                start: '',
+                end: '',
+                startTime: '',
+                endTime: '',
+                allDay: false,
             },
             hasError: false,
             error: {}
@@ -53,25 +55,27 @@ class EventModal extends Component {
 
     handleAddUpdateEvent = (e, status) => {
         e.preventDefault();
-        const ScheduleName = e.target.ScheduleName.value;
+        const title = e.target.title.value;
         const CalendarDatabase = e.target.CalendarDatabase.value;
-        let Starts = moment(e.target.Starts.value).format('YYYY-MM-DD');
-        let Ends = moment(e.target.Ends.value).format('YYYY-MM-DD');
-        const StartsTime = e.target.StartsTime.value;
-        const EndsTime = e.target.EndsTime.value;
+        let start = moment(e.target.start.value).format('YYYY-MM-DD');
+        let end = moment(e.target.end.value).format('YYYY-MM-DD');
+        const StartsTime = e.target.startTime.value;
+        const EndsTime = e.target.endTime.value;
         // const memo = e.target.memo.value;
         if (StartsTime) {
-            Starts += `T${StartsTime}`;
+            start += `T${StartsTime}`;
         }
         if (EndsTime) {
-            Ends += `T${EndsTime}`;
+            end += `T${EndsTime}`;
         }
-        const event = {
-            ScheduleName,
-            CalendarDatabase,
-            Starts,
-            Ends,
-            allDay: false
+        let event = {
+            "id": this.state.event.id,
+            "title": title,
+            "CalendarDatabase": CalendarDatabase,
+            "start": start,
+            "end": end,
+            "Owner": "UUID",
+            "AllDay": false
         }
         if (StartsTime === "" || EndsTime === "") {
             event.allDay = true;
@@ -80,7 +84,6 @@ class EventModal extends Component {
         schema
             .validate(event)
             .then(() => {
-                event.Ends = moment(event.Starts);
                 if (!status) {
                     this.props.addEvent(event);
                 } else {
@@ -98,19 +101,19 @@ class EventModal extends Component {
         //reset state before closing
         this.setState({
             event: {
-                ScheduleName: "",
+                title: "",
                 CalendarDatabase: "",
-                Starts: '',
-                Ends: '',
-                StartsTime: '',
-                EndsTime: '',
+                start: '',
+                end: '',
+                startTime: '',
+                endTime: ''
             }
         });
         this.props.handleClose()
     }
 
     render() {
-        const {ScheduleName, CalendarDatabase, Starts, Ends, StartsTime, EndsTime} = this.state.event;
+        const {title, CalendarDatabase, start, end, startTime, endTime} = this.state.event;
         return (
             <div className="modal">
                 <Modal
@@ -122,10 +125,10 @@ class EventModal extends Component {
                     </Modal.Header>
                     <Modal.Body>
                         <Form onSubmit={e => this.handleAddUpdateEvent(e, Object.keys(this.props.event).length !== 0)}>
-                            <Form.Group as={Row} className={"mb-3"} controlId="ScheduleName">
+                            <Form.Group as={Row} className={"mb-3"} controlId="title">
                                 <Form.Label column sm="2">Title <span className="required">*</span></Form.Label>
                                 <Col sm="10">
-                                    <Form.Control required type="text" placeholder="Event Title" value={ScheduleName}
+                                    <Form.Control required type="text" placeholder="Event Title" value={title || ''}
                                                   onChange={this.onChange}
                                                   isInvalid={this.state.error.path === "title"}/>
                                     <Form.Control.Feedback className="error"
@@ -135,7 +138,7 @@ class EventModal extends Component {
                             <Form.Group as={Row} className={"mb-3"} controlId="CalendarDatabase">
                                 <Form.Label column sm="2">Database <span className="required">*</span></Form.Label>
                                 <Col sm="10">
-                                    <Form.Select aria-label="Default select example">
+                                    <Form.Select aria-label="Default select example" defaultValue={CalendarDatabase || ''}>
                                         {
                                             this.props.database.map((database, i) =>
                                                 <option key={i} value={database.UUID}>{database.DatabaseName}</option>
@@ -146,21 +149,23 @@ class EventModal extends Component {
                             </Form.Group>
                             <Form.Group as={Row} className={"mb-3"}>
                                 <Form.Group as={Col}>
-                                    <Form.Group as={Row} className={"mb-3"} controlId="Starts">
+                                    <Form.Group as={Row} className={"mb-3"} controlId="start">
                                         <Form.Label column sm="4">Start Date <span
                                             className="required">*</span></Form.Label>
                                         <Col sm="8">
-                                            <Form.Control required type="date" value={Starts} onChange={this.onChange}/>
+                                            <Form.Control required type="date" defaultValue={getDate(start) || ''} onChange={this.onChange}/>
+                                            <Form.Control.Feedback className="error"
+                                                                   type="isInvalid">{this.state.error.errors && this.state.error.path === "start" && this.state.error.errors[0]}</Form.Control.Feedback>
                                         </Col>
                                     </Form.Group>
 
                                 </Form.Group>
 
                                 <Form.Group as={Col}>
-                                    <Form.Group as={Row} className={"mb-3"} controlId="Ends">
+                                    <Form.Group as={Row} className={"mb-3"} controlId="end">
                                         <Form.Label column sm="4">End Date</Form.Label>
                                         <Col sm="8">
-                                            <Form.Control type="date" value={Ends} onChange={this.onChange}/>
+                                            <Form.Control type="date" defaultValue={getDate(end) || ''} onChange={this.onChange}/>
                                         </Col>
                                         <Form.Control.Feedback className="error"
                                                                type="isInvalid">{this.state.error.errors && this.state.error.path === "end" && this.state.error.errors[0]}</Form.Control.Feedback>
@@ -169,22 +174,21 @@ class EventModal extends Component {
                             </Form.Group>
                             <Form.Group as={Row} className={"mb-3"}>
                                 <Form.Group as={Col}>
-                                    <Form.Group as={Row} className={"mb-3"} controlId="StartsTime">
+                                    <Form.Group as={Row} className={"mb-3"} controlId="startTime">
                                         <Form.Label column sm="4">Begins</Form.Label>
                                         <Col sm="8">
-                                            <Form.Control type="time" value={StartsTime} onChange={this.onChange}/>
+                                            <Form.Control type="time" defaultValue={startTime || ''} onChange={this.onChange}/>
                                         </Col>
                                     </Form.Group>
                                 </Form.Group>
 
                                 <Form.Group as={Col}>
-                                    <Form.Group as={Row} className={"mb-3"} controlId="EndsTime">
+                                    <Form.Group as={Row} className={"mb-3"} controlId="endTime">
                                         <Form.Label column sm="4">Ends</Form.Label>
                                         <Col sm="8">
-                                            <Form.Control type="time" value={EndsTime} onChange={this.onChange}/>
+                                            <Form.Control type="time" defaultValue={endTime || ''} onChange={this.onChange}/>
                                         </Col>
                                     </Form.Group>
-
                                 </Form.Group>
                             </Form.Group>
                             {/*<Form.Group as={Row} className={"mb-3"} controlId="memo">*/}
