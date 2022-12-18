@@ -69,6 +69,12 @@ class App extends React.Component {
                 }
                 this.setState({
                     database: data
+                }, () => {
+                    if (localStorage.getItem('colors') === null) {
+                        if (JSON.parse(localStorage.getItem('colors')).length !== this.state.database.length) {
+                            this.setRandomColor(data);
+                        }
+                    }
                 })
             })
             .catch(error => {
@@ -114,17 +120,21 @@ class App extends React.Component {
                     if (replacedKeysInData.end == null && moment(replacedKeysInData.start).format("HH:mm") === "00:00") {
                         replacedKeysInData.allDay = true
                     }
+                    if (replacedKeysInData.end !== null) {
+                        replacedKeysInData.end = moment(replacedKeysInData.end).add(1, 'days').format("YYYY-MM-DDTHH:mm");
+                    }
                     res.push(replacedKeysInData);
                 })
 
-                console.log(res)
+                console.log(res);
+                this.getRandomColor(res);
 
                 this.setState(({
                     events: res
                 }), () => {
                     saveStateToLocalStorage(this.state);
+                    this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
                 })
-                this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
             })
             .catch(error => {
                 console.error('There was an error!', error);
@@ -144,12 +154,22 @@ class App extends React.Component {
     * update the state with the new event and make a copy of state to local storage for persistent data usage
     * */
     addEvent = (event) => {
-        let starts = moment(event.start).format("YYYY-MM-DD") + "T" + moment(event.startTime).format("HH:mm");
-        let ends = moment(event.end).format("YYYY-MM-DD") + "T" + moment(event.endTime).format("HH:mm");
+        let starts = moment(event.start).format("YYYY-MM-DDTHH:mm");
+        let ends = moment(event.end).format("YYYY-MM-DDTHH:mm");
+
+        if (event.start.split("T")[1] === undefined) {
+            starts = moment(event.start).format("YYYY-MM-DD") + "T00:00";
+            event.AllDay = true;
+        }
+        if (event.end.split("T")[1] === undefined) {
+            ends = moment(event.end).format("YYYY-MM-DD") + "T00:00";
+        }
 
         if (event.end === null || event.end === "Invalid date") {
             ends = null;
         }
+
+        // '%Y-%m-%d %H:%M'
 
         let jsondata = {
             "UUID": event.id ? event.id : uuidv4(),
@@ -158,7 +178,7 @@ class App extends React.Component {
             "Starts": starts,
             "Ends": ends,
             "Owner": "UUID",
-            "AllDay": event.allDay ? event.allDay : false
+            "AllDay": event.AllDay ? event.AllDay : false
         }
 
         let token = getCookie("loginToken");
@@ -171,47 +191,48 @@ class App extends React.Component {
                 'Authorization': token
             },
             body: JSON.stringify(jsondata)
-        }).then((response) => {
-            if (response.status === 200) {
-                // const map = {
-                //     'UUID': 'id',
-                //     'ScheduleName': 'title',
-                //     'Starts': 'start',
-                //     'Ends': 'end',
-                //     'Owner': 'owner',
-                //     'Editor': 'editor',
-                //     'AllDay': 'allDay',
-                // }
-                // const res = [];
-                // const replacedKeysInData = {}
-                // Object.keys(jsondata).forEach((key) => {
-                //     const keyFromMap = map[key] || key;
-                //     replacedKeysInData[keyFromMap] = event[key]
-                // })
-                // if (replacedKeysInData.end == null && moment(replacedKeysInData.start).format("HH:mm") === "00:00") {
-                //     replacedKeysInData.allDay = true
-                // }
-                // res.push(replacedKeysInData);
+        })
+            .then((response) => {
+                if (response.status === 200) {
+                    return response.json();
+                } else {
+                    // if the response is not 200, then the event is not added successfully, because of login token
+                    setCookie("loginToken", "");
+                    this.setState({
+                        loggedIn: false
+                    })
+                }
+            })
+            .then((data) => {
+                const map = {
+                    'UUID': 'id',
+                    'ScheduleName': 'title',
+                    'Starts': 'start',
+                    'Ends': 'end',
+                    'Owner': 'owner',
+                    'Editor': 'editor',
+                    'AllDay': 'allDay',
+                }
+                const replacedKeysInData = {}
+                Object.keys(data).forEach((key) => {
+                    const keyFromMap = map[key] || key;
+                    replacedKeysInData[keyFromMap] = data[key]
+                })
+                if (replacedKeysInData.end == null && moment(replacedKeysInData.start).format("HH:mm") === "00:00") {
+                    replacedKeysInData.allDay = true
+                }
+                if (replacedKeysInData.end !== null) {
+                    replacedKeysInData.end = moment(replacedKeysInData.end).add(1, 'days').format("YYYY-MM-DDTHH:mm");
+                }
+                this.getRandomColor([replacedKeysInData]);
 
-                console.log(event);
-                // if the response is 200, then the event is added successfully
                 this.setState(({ events }) => ({
-                    events: [...events, event]
+                    events: [...events, replacedKeysInData]
                 }), () => {
-                    // after the state is updated, save the state to local storage
                     saveStateToLocalStorage(this.state);
+                    this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
                 })
-
-                // update the events for the current day
-                this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
-            } else {
-                // if the response is not 200, then the event is not added successfully, because of login token
-                setCookie("loginToken", "");
-                this.setState({
-                    loggedIn: false
-                })
-            }
-        });
+            })
     }
 
 
@@ -219,7 +240,6 @@ class App extends React.Component {
     deleteEvent = (event) => {
         const newEvents = this.state.events.filter(e => e.id !== event.id);
         let token = getCookie("loginToken");
-        console.log("newEvents" + newEvents);
         let jsondata = {
             "UUID": event.id,
         }
@@ -236,6 +256,7 @@ class App extends React.Component {
                     events: newEvents
                 }, () => {
                     saveStateToLocalStorage(this.state);
+                    this.getEvents(moment(new Date()).format('YYYY-MM-DD'));
                 })
             }
         });
@@ -268,7 +289,7 @@ class App extends React.Component {
             this.state.events.forEach(event => {
                 if ((moment(event.start).isBefore(date) && moment(event.end).isAfter(date)) || moment(event.start, 'YYYY-MM-DD').isSame(date)) {
                     let start = event.start.slice(11, 16);
-                    if (start === "") {
+                    if (event.allDay) {
                         start = 'All Day'
                     }
                     events.push({title: event.title, start});
@@ -468,6 +489,42 @@ class App extends React.Component {
                 </Container>
             </>
         );
+    }
+
+    // get a random color that is the same for the same string and that is a string
+    // this is used to generate a color for each event
+    // the color is used to display the event in the calendar
+    getRandomColor = (arr) => {
+        if (localStorage.getItem('colors') === null || localStorage.getItem('colors') === undefined || localStorage.getItem('colors') === "") {
+            this.setRandomColor(this.state.database);
+        }
+        else {
+            let json = JSON.parse(localStorage.getItem('colors'));
+            json.forEach((database) => {
+                console.log(database);
+                arr.forEach((event) => {
+                    if (event.CalendarDatabase === database.split(":")[0]) {
+                        event.backgroundColor = database.split(":")[1];
+                    }
+                })
+            })
+        }
+    }
+
+    setRandomColor = (databases) => {
+        let colors = [];
+        databases.forEach((database) => {
+            let a = "rgb("
+            for (let i = 0; i < 3; i++) {
+                a += Math.floor(Math.random() * 255);
+                if (i !== 2) {
+                    a += ", ";
+                }
+            }
+            a += ")"
+            colors.push(database.UUID + ":" + a);
+        })
+        localStorage.setItem('colors', JSON.stringify(colors));
     }
 }
 

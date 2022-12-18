@@ -113,7 +113,21 @@ class EventModal extends Component {
     }
 
     render() {
-        const {title, CalendarDatabase, start, end, startTime, endTime} = this.state.event;
+        const {title, CalendarDatabase, start} = this.state.event;
+        let startTime
+        let endTime
+        let end
+        if (start !== null && start.split("T")[1] !== "00:00:00" && !this.state.event.allDay) {
+            startTime = moment(start).format('YYYY-MM-DDTHH:mm').split("T")[1];
+        }
+        if (this.state.event.end !== null) {
+            end = moment(this.state.event.end).subtract(1, 'days').format('YYYY-MM-DDTHH:mm');
+        } else {
+            end = null
+        }
+        if (this.state.event.end !== null && end.split("T")[1] !== "00:00:00" && !this.state.event.allDay) {
+            endTime = moment(end).format('YYYY-MM-DDTHH:mm').split("T")[1];
+        }
         return (
             <div className="modal">
                 <Modal
