@@ -71,7 +71,10 @@ class App extends React.Component {
                     database: data
                 }, () => {
                     if (data.length > 0) {
-                        if (localStorage.getItem('colors') === null) {
+                        if (localStorage.getItem('colors') === null && this.state.database.length > 0) {
+                            this.setRandomColor(data);
+                        }
+                        else {
                             if (JSON.parse(localStorage.getItem('colors')).length !== this.state.database.length) {
                                 this.setRandomColor(data);
                             }
