@@ -205,6 +205,7 @@ class App extends React.Component {
                     return response.json();
                 } else {
                     // if the response is not 200, then the event is not added successfully, because of login token
+                    console.log("Error: " + response);
                     setCookie("loginToken", "");
                     this.setState({
                         loggedIn: false
