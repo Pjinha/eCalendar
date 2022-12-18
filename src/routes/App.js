@@ -70,9 +70,11 @@ class App extends React.Component {
                 this.setState({
                     database: data
                 }, () => {
-                    if (localStorage.getItem('colors') === null) {
-                        if (JSON.parse(localStorage.getItem('colors')).length !== this.state.database.length) {
-                            this.setRandomColor(data);
+                    if (data.length > 0) {
+                        if (localStorage.getItem('colors') === null) {
+                            if (JSON.parse(localStorage.getItem('colors')).length !== this.state.database.length) {
+                                this.setRandomColor(data);
+                            }
                         }
                     }
                 })
@@ -127,7 +129,10 @@ class App extends React.Component {
                 })
 
                 console.log(res);
-                this.getRandomColor(res);
+
+                if (res.length > 0) {
+                    this.getRandomColor(res);
+                }
 
                 this.setState(({
                     events: res
